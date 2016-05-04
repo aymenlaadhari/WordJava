@@ -58,6 +58,7 @@ public class DocDao implements DocDaoInterface{
                 kunden.setOrt(rs.getString("Ort"));
                 kunden.setPlz(rs.getString("PLZ"));
                 kunden.setStrasse(rs.getString("Strasse"));
+                kunden.setLand(rs.getString("Land"));
                 kundens.add(kunden);   
                 
             }

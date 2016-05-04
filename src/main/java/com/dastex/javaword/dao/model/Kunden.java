@@ -12,7 +12,7 @@ package com.dastex.javaword.dao.model;
  */
 public class Kunden {
     
-    private String nr, name1, name2, name3,strasse, plz, ort, plzZeichen;
+    private String nr, name1, name2, name3,strasse, plz, ort, land;
 
     public String getNr() {
         return nr;
@@ -70,13 +70,15 @@ public class Kunden {
         this.ort = ort;
     }
 
-    public String getPlzZeichen() {
-        return plzZeichen;
+    public String getLand() {
+        return land;
     }
 
-    public void setPlzZeichen(String plzZeichen) {
-        this.plzZeichen = plzZeichen;
+    public void setLand(String land) {
+        this.land = land;
     }
+
+    
     
     
 }

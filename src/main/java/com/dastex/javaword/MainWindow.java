@@ -9,6 +9,9 @@ import com.dastex.javaword.dao.DocDao;
 import com.dastex.javaword.dao.DocDaoInterface;
 import com.dastex.javaword.dao.model.Kunden;
 import java.awt.HeadlessException;
+import java.awt.Toolkit;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -38,12 +41,16 @@ public class MainWindow extends javax.swing.JFrame {
                         "Straße",
                         "Ort","Land"};
     DefaultListModel<String> model;
+    
+    
 
     /**
      * Creates new form MainWindow
      */
     public MainWindow() {
         initComponents();
+        
+        
         daoInterface = new DocDao();
     }
 
@@ -63,6 +70,7 @@ public class MainWindow extends javax.swing.JFrame {
         });
 
     }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -90,7 +98,6 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel8 = new javax.swing.JLabel();
         textPLZ = new javax.swing.JTextField();
         textOrt = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
         jLabel9 = new javax.swing.JLabel();
         textLand = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -169,13 +176,6 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setText("Search");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
         jLabel9.setText("Land");
 
         textLand.addActionListener(new java.awt.event.ActionListener() {
@@ -229,33 +229,30 @@ public class MainWindow extends javax.swing.JFrame {
                                     .addComponent(jLabel8)
                                     .addComponent(jLabel9))
                                 .addGap(46, 46, 46)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textName1, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(textName3, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(textStrasse, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(textName2, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(textPLZ, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                        .addComponent(textLand, javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(textOrt, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(textAdresse, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(46, 46, 46)
-                        .addComponent(jButton2))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(textOrt, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)
+                                    .addComponent(textPLZ, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(textStrasse, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(textName3, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(textName2, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(textName1, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(textAdresse, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(textLand))))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(200, 200, 200)
                         .addComponent(jButton1)))
-                .addGap(84, 84, 84))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(21, 21, 21)
                 .addComponent(jLabel1)
-                .addGap(28, 28, 28)
+                .addGap(29, 29, 29)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(textAdresse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2)
-                    .addComponent(jButton2))
+                    .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
@@ -277,16 +274,16 @@ public class MainWindow extends javax.swing.JFrame {
                     .addComponent(jLabel7)
                     .addComponent(textPLZ, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(textOrt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel8)
+                    .addComponent(textOrt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(textLand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(47, 47, 47)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 128, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
                 .addComponent(jButton1)
                 .addGap(31, 31, 31))
         );
@@ -294,6 +291,9 @@ public class MainWindow extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    
+    
+    
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
 
@@ -304,6 +304,7 @@ public class MainWindow extends javax.swing.JFrame {
                 fParagraph.setAlignment(ParagraphAlignment.LEFT);
                 XWPFRun fRun = fParagraph.createRun();
                 fRun.setBold(true);
+                
                 fRun.setText(textName1.getText() + "\n" + textPLZ.getText() + "\n" + textStrasse.getText() + "\n" + textOrt.getText());
 
                 //create table
@@ -327,7 +328,7 @@ public class MainWindow extends javax.swing.JFrame {
                 tableRowTwo.getCell(1).setText("Nr.:");
 
                 XWPFTableRow tableRowThree = table.createRow();
-                tableRowThree.getCell(0).setText("Postf." + textPLZ.getText());
+                tableRowThree.getCell(0).setText(textPLZ.getText());
                 tableRowThree.getCell(1).setText("Datum : ");
 
                 XWPFTableRow tableFour = table.createRow();
@@ -353,7 +354,7 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void textAdresseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textAdresseActionPerformed
         // TODO add your handling code here:
-
+ populateResult(textAdresse.getText());
 
     }//GEN-LAST:event_textAdresseActionPerformed
 
@@ -384,11 +385,6 @@ public class MainWindow extends javax.swing.JFrame {
     private void textOrtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textOrtActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_textOrtActionPerformed
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-        populateResult(textAdresse.getText());
-    }//GEN-LAST:event_jButton2ActionPerformed
 
     private void textLandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textLandActionPerformed
         // TODO add your handling code here:
@@ -431,7 +427,6 @@ public class MainWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

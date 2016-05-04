@@ -8,7 +8,7 @@ package com.dastex.javaword.dao;
 
 import com.dastex.javaword.dao.model.Kunden;
 import java.sql.Connection;
-import java.sql.Date;
+
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -72,7 +72,6 @@ public class DocDao implements DocDaoInterface{
     @Override
     public Kunden getKundenByCriteria() {
         
-      
         try
             
             ( 
@@ -80,14 +79,12 @@ public class DocDao implements DocDaoInterface{
                 Connection conProdukt = DriverManager.getConnection(dburlProdukt); 
               
                 Statement statementPro = conProdukt.createStatement();
-                
-                
+                    
                 ResultSet rs = statementPro.executeQuery("SELECT * FROM Kunde where Kunde.Nr = 100000");
                 
                 
                 ) 
-            
-           
+
             
         {
             kunden = new Kunden();
@@ -97,10 +94,7 @@ public class DocDao implements DocDaoInterface{
                 kunden.setNr(rs.getNString("Nr"));
                 kunden.setOrt(rs.getString("Ort"));
                 kunden.setPlz(rs.getString("PLZ"));
-                kunden.setStrasse(rs.getString("Strasse"));
-                
-                
-            
+                kunden.setStrasse(rs.getString("Strasse"));   
         } catch (Exception e) {
         }
      

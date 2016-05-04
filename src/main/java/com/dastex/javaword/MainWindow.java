@@ -11,6 +11,7 @@ import com.dastex.javaword.dao.model.Kunden;
 import java.awt.HeadlessException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -19,42 +20,43 @@ import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTable.XWPFBorderType;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 
 /**
  *
  * @author aladhari
  */
 public class MainWindow extends javax.swing.JFrame {
+
     private String Adresse, Lieferant, Produkt;
     private final DocDaoInterface daoInterface;
-   DefaultListModel<String> model;
-   
-   
-
+    DefaultListModel<String> model;
 
     /**
      * Creates new form MainWindow
      */
     public MainWindow() {
         initComponents();
-        daoInterface = new DocDao();  
-        
-    }
-    
-    
-    private void populateResult()
-    {
-        Kunden kunden = daoInterface.getKundenByCriteria(textAdresse.getText());
-        textName1.setText(kunden.getName1());
-        textName2.setText(kunden.getName2());
-        textName3.setText(kunden.getName3());
-        textStrasse.setText(kunden.getStrasse());
-        textPLZ.setText(kunden.getPlz());
-        textOrt.setText(kunden.getOrt());
-        
-               
+        daoInterface = new DocDao();
     }
 
+    private void populateResult(String nummer) {
+
+        daoInterface.getListKunden().stream().forEach((listKunden) -> {
+            //System.out.println(listKunden.getName1()+"*"+listKunden.getOrt());
+            if (listKunden.getNr() == null ? nummer == null : listKunden.getNr().equals(nummer)) {
+                System.out.println(listKunden.getName1());
+                textName1.setText(listKunden.getName1());
+                textStrasse.setText(listKunden.getStrasse());
+                textPLZ.setText(listKunden.getPlz());
+                textOrt.setText(listKunden.getOrt());
+
+            }
+        });
+
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -245,19 +247,56 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        
+
         try {
             try (FileOutputStream fileOutputStream = new FileOutputStream("First.docx")) {
                 XWPFDocument document = new XWPFDocument();
                 XWPFParagraph fParagraph = document.createParagraph();
                 fParagraph.setAlignment(ParagraphAlignment.LEFT);
                 XWPFRun fRun = fParagraph.createRun();
-                fRun.setText(textAdresse.getText());
+                fRun.setBold(true);
+                fRun.setText(textName1.getText() + "\n" + textPLZ.getText() + "\n" + textStrasse.getText() + "\n" + textOrt.getText());
+
+                //create table
+                XWPFTable table = document.createTable();
+                table.getRow(0).getCell(0).getCTTc().addNewTcPr().addNewTcW().setW(BigInteger.valueOf(10000));
+
                 
+                table.setInsideHBorder(XWPFBorderType.NONE,1, 1, "1C7331");
+                table.setInsideVBorder(XWPFBorderType.NONE, 1, 1, "1C7331");
+                //create first row
+                XWPFTableRow tableRowOne = table.getRow(0);
+                //set height 1 inch.
+               
+                tableRowOne.getCell(0).setText("Test- Dastex, Draisstr.23, DE-76461 Muggensturm");
+                
+                tableRowOne.addNewTableCell().setText("AUFTRAGSBESTÄTIGUNG");
+
+                
+                XWPFTableRow tableRowTwo = table.createRow();
+                tableRowTwo.getCell(0).setText(textName1.getText());
+                tableRowTwo.getCell(1).setText("Nr.:");
+
+                XWPFTableRow tableRowThree = table.createRow();
+                tableRowThree.getCell(0).setText("Postf." + textPLZ.getText());
+                tableRowThree.getCell(1).setText("Datum : ");
+
+                XWPFTableRow tableFour = table.createRow();
+                tableFour.getCell(0).setText(textStrasse.getText());
+                tableFour.getCell(1).setText("Kunde:");
+
+                XWPFTableRow tableFive = table.createRow();
+                tableFive.getCell(0).setText(textOrt.getText());
+                tableFive.getCell(1).setText("Ihr Auftrag vom:");
+
+                XWPFTableRow tableSix = table.createRow();
+                tableSix.getCell(0).setText("Deutschland");
+                tableSix.getCell(1).setText("Bearbeiter:");
+
                 document.write(fileOutputStream);
                 JOptionPane.showMessageDialog(null, "Successeful created");
             }
-            
+
         } catch (IOException | HeadlessException e) {
             JOptionPane.showMessageDialog(null, e);
         }
@@ -265,8 +304,8 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void textAdresseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textAdresseActionPerformed
         // TODO add your handling code here:
-       
-        
+
+
     }//GEN-LAST:event_textAdresseActionPerformed
 
     private void textName1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textName1ActionPerformed
@@ -299,7 +338,7 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
-        populateResult();
+        populateResult(textAdresse.getText());
     }//GEN-LAST:event_jButton2ActionPerformed
 
     /**

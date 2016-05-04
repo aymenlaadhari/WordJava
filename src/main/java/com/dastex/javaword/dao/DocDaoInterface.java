@@ -5,6 +5,7 @@
  */
 package com.dastex.javaword.dao;
 
+
 import com.dastex.javaword.dao.model.Kunden;
 import java.util.List;
 
@@ -14,6 +15,6 @@ import java.util.List;
  */
 public interface DocDaoInterface {
     public List<Kunden> getListKunden();
-    public Kunden getKundenByCriteria(String criteria);
+    public Kunden getKundenByCriteria();
     
 }

@@ -5,6 +5,7 @@
  */
 package com.dastex.javaword.dao;
 
+
 import com.dastex.javaword.dao.model.Kunden;
 import java.sql.Connection;
 import java.sql.Date;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 /**
  *
  * @author aladhari
@@ -25,6 +27,7 @@ public class DocDao implements DocDaoInterface{
     
     
     String dburlProdukt = "jdbc:sqlanywhere:uid=dba;pwd=sql;eng=DBSRV5;database=Produkt5;links=tcpip(host = 10.152.1.203)";
+    Kunden kunden;
    
 
     @Override
@@ -66,9 +69,9 @@ public class DocDao implements DocDaoInterface{
     }
 
     @Override
-    public Kunden getKundenByCriteria(String criteria) {
+    public Kunden getKundenByCriteria() {
         
-       Kunden kunden = null;
+      
         try
             
             ( 
@@ -78,13 +81,12 @@ public class DocDao implements DocDaoInterface{
                 Statement statementPro = conProdukt.createStatement();
                 
                 
-                ResultSet rs = statementPro.executeQuery("SELECT * FROM Kunde where Kunde.Nr = "+criteria+"");
+                ResultSet rs = statementPro.executeQuery("SELECT * FROM Kunde where Kunde.Nr = 100000");
                 
                 
                 ) 
             
-            
-            
+           
             
         {
             kunden = new Kunden();
@@ -95,6 +97,7 @@ public class DocDao implements DocDaoInterface{
                 kunden.setOrt(rs.getString("Ort"));
                 kunden.setPlz(rs.getString("PLZ"));
                 kunden.setStrasse(rs.getString("Strasse"));
+                
                 
             
         } catch (Exception e) {

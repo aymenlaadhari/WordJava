@@ -12,6 +12,7 @@ import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -299,12 +300,12 @@ public class MainWindow extends javax.swing.JFrame {
 
         try {
             try (FileOutputStream fileOutputStream = new FileOutputStream("First.docx")) {
-                XWPFDocument document = new XWPFDocument();
+                XWPFDocument document = new XWPFDocument(new FileInputStream("C:\\Users\\aladhari\\Documents\\NetBeansProjects\\WordJava\\template.docx"));
                 XWPFParagraph fParagraph = document.createParagraph();
                 fParagraph.setAlignment(ParagraphAlignment.LEFT);
+                fParagraph.setStyle("Heading1");
                 XWPFRun fRun = fParagraph.createRun();
                 fRun.setBold(true);
-                
                 fRun.setText(textName1.getText() + "\n" + textPLZ.getText() + "\n" + textStrasse.getText() + "\n" + textOrt.getText());
 
                 //create table

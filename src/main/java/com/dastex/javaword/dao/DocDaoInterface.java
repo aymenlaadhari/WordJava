@@ -6,6 +6,8 @@
 package com.dastex.javaword.dao;
 
 
+import com.dastex.javaword.dao.model.Artikel;
+import com.dastex.javaword.dao.model.Artikelzusatztext;
 import com.dastex.javaword.dao.model.Kunden;
 import java.util.List;
 
@@ -16,5 +18,8 @@ import java.util.List;
 public interface DocDaoInterface {
     public List<Kunden> getListKunden();
     public Kunden getKundenByCriteria();
+    public List<Artikel> getListArtikel();
+    public Artikel getArtikle();
+ 
     
 }

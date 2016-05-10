@@ -62,7 +62,7 @@ public class CreateDataBAse {
                 //System.out.println(rs.getString("TABLE_NAME"));
                 ResultSet rs1 = statementPro.executeQuery("SELECT * FROM " + rs.getString("TABLE_NAME"));
                 ResultSetMetaData rsmd = rs1.getMetaData();
-                createTable(rs.getString("TABLE_NAME"), rsmd);
+                createTable(rs.getString("TABLE_NAME"), rsmd, rs1);
                 
             }
         } catch (SQLException e) {
@@ -70,7 +70,7 @@ public class CreateDataBAse {
         }
     }
 
-    private static void createTable(String tableName, ResultSetMetaData rsmd) {
+    private static void createTable(String tableName, ResultSetMetaData rsmd, ResultSet rs1) {
         Connection conn = null;
         Statement stmt = null;
         try {
@@ -86,9 +86,9 @@ public class CreateDataBAse {
             //STEP 4: Execute a query
             System.out.println("Creating table in given database...");
             stmt = conn.createStatement();
-            String sqlCreate = "CREATE TABLE " + tableName + " (id INTEGER not NULL,PRIMARY KEY ( id ))";
+            String sqlCreate = "CREATE TABLE " + tableName + " (idNew INTEGER not NULL,PRIMARY KEY ( idNew ))";
             stmt.executeUpdate(sqlCreate);
-            createTableColumns(rsmd,tableName, stmt,conn);
+            createTableColumns(rsmd,tableName, stmt,conn, rs1);
             System.out.println("Created table in given database...");
         } catch (SQLException se) {
             //Handle errors for JDBC
@@ -115,18 +115,24 @@ public class CreateDataBAse {
         System.out.println("Goodbye!");
     }
 
-    private static void createTableColumns(ResultSetMetaData rsmd, String tableName, Statement stmt, Connection conn) throws SQLException {
-        int columnCount = rsmd.getColumnCount();
-
+    private static void createTableColumns(ResultSetMetaData rsmd, String tableName, Statement stmt, Connection conn, ResultSet rs1) throws SQLException {
+        //int columnCount = rsmd.getColumnCount();
+        int i = 1;
         // The column count starts from 1
-        for (int i = 1; i <= columnCount; i++) {
-            String name = rsmd.getColumnName(i);
+        
+        
+         while (rs1.next())
+         {
+              String name = rsmd.getColumnName(i);
             stmt = conn.createStatement();
             String sqlCreate = "ALTER TABLE "+tableName+" ADD "+name+"  varchar(200) NULL";
+            String sqlInsert = "INSERT INTO "+tableName+" "+name+" VALUES "+rs1.getNString(name)+"";
             stmt.executeUpdate(sqlCreate);
+            stmt.executeUpdate(sqlInsert);
             System.out.println(name);
+            i = i+1;
             // Do stuff with name
-        }
+         }
     }
 
 }

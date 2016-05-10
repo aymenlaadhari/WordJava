@@ -48,14 +48,14 @@ public class TestDatabase {
       DocDaoInterface daoInterface;
       daoInterface = new DocDao();
         Artikel artikel = daoInterface.getArtikle();
-        System.out.println(artikel.getFarben()+artikel.getBisGroesse()+artikel.getBezeichnung());
+        System.out.println(artikel.getNr());
         
     }
     
     private static void getFarben() throws SQLException
     {
         DocDao dao = new DocDao();
-        System.out.println(dao.getFarben()); 
+       dao.getfarbenByStoredProcedure();
    }
     
 }

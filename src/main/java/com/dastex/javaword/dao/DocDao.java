@@ -132,6 +132,7 @@ public class DocDao implements DocDaoInterface {
                 artikel = new Artikel();
                 artikel.setNr(rs.getString("Nr"));
                 artikel.setId(rs.getString("ID"));
+                artikel.setBezeichnung(rs.getString("Bezeichnung"));
                 
                 artikels.add(artikel);
             }

@@ -8,10 +8,14 @@ package com.dastex.javaword;
 import com.dastex.javaword.dao.DocDao;
 import com.dastex.javaword.dao.DocDaoInterface;
 import com.dastex.javaword.dao.model.Artikel;
+import com.dastex.javaword.dao.model.Combination;
 import com.dastex.javaword.dao.model.Kunden;
 import java.awt.HeadlessException;
+import java.awt.event.KeyEvent;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +35,8 @@ public class MainWindow extends javax.swing.JFrame {
     private final DocDaoInterface daoInterface;
     List<Kunden> kundens;
     List<Artikel> artikels;
+    List<Combination> combinations;
+
     String[] columnNames = {"Nummer",
         "Name",
         "PLZ",
@@ -38,8 +44,8 @@ public class MainWindow extends javax.swing.JFrame {
         "Ort", "Land"};
     Object[] rowData = new Object[6];
     Object[] rowDataArtikel = new Object[5];
-    DefaultTableModel tableModel, tableModelArtikel;
-    
+    Object[] rowDataCombinaison = new Object[7];
+    DefaultTableModel tableModel, tableModelArtikel, tableModelCombinaison;
 
     /**
      * Creates new form MainWindow
@@ -60,21 +66,13 @@ public class MainWindow extends javax.swing.JFrame {
     private void populateListKunden() {
 
         kundens.stream().forEach((listKunden) -> {
-            //System.out.println(listKunden.getName1()+"*"+listKunden.getOrt());
             populateJtableKunden(listKunden);
             tableModel.addRow(rowData);
             jTableKundenl.setModel(tableModel);
-//            if (listKunden.getNr() == null ? nummer == null : listKunden.getNr().equals(nummer)) {
-//                System.out.println(listKunden.getName1());
-//                textName1.setText(listKunden.getName1());
-//                textStrasse.setText(listKunden.getStrasse());
-//                textPLZ.setText(listKunden.getPlz());
-//                textOrt.setText(listKunden.getOrt());
-//                textLand.setText(listKunden.getLand());
-//            }
         });
 
-    }  
+    }
+
     private void populateJtableKunden(Kunden kunden) {
         rowData[0] = kunden.getNr();
         rowData[1] = kunden.getName1();
@@ -83,38 +81,67 @@ public class MainWindow extends javax.swing.JFrame {
         rowData[4] = kunden.getOrt();
         rowData[5] = kunden.getLand();
     }
-   
-    
-    private void populateListArtikel()
-    {
-       artikels.stream().forEach((artikel)-> {
-           populateJtableArtikel(artikel);
-           tableModelArtikel.addRow(rowDataArtikel);
-           jTableArtikel.setModel(tableModelArtikel);
-           
-       });
+
+    private void populateListArtikel() {
+        artikels.stream().forEach((artikel) -> {
+            populateJtableArtikel(artikel);
+            tableModelArtikel.addRow(rowDataArtikel);
+            jTableArtikel.setModel(tableModelArtikel);
+
+        });
     }
-    private void populateJtableArtikel(Artikel artikel)
-    {
+
+    private void populateJtableArtikel(Artikel artikel) {
         rowDataArtikel[0] = artikel.getNr();
         rowDataArtikel[1] = artikel.getBezeichnung();
-        
+
     }
-   
-    
-    private void jtableKundenFilter(String crieteria)
-    {
+
+    private void populateListCombinaison(List<Combination> combinaisons) {
+//        combinaisons.stream().forEach((cnsmr) -> {
+//            populateJtableCombinaison(cnsmr);
+//            tableModelCombinaison.addRow(rowDataCombinaison);
+//            jTableCombinaison.setModel(tableModelCombinaison);
+//        });
+
+ for (int i = 0; i < combinaisons.size(); i++) {
+            System.out.println(combinaisons.get(i).getFarben()+"*"+combinaisons.get(i).getPmng()); 
+            populateJtableCombinaison(combinaisons.get(i));
+            tableModelCombinaison.addRow(rowDataCombinaison);
+            jTableCombinaison.setModel(tableModelCombinaison);
+       }
+    }
+
+    private void populateJtableCombinaison(Combination combination) {
+//        rowDataCombinaison[0] = combination.getFarben();
+//        rowDataCombinaison[1] = combination.getGroessen();
+//        rowDataCombinaison[2] = combination.getMe();
+//        rowDataCombinaison[3] = combination.getPmng();
+//        rowDataCombinaison[4] = combination.getVk1();
+//        rowDataCombinaison[5] = combination.getVpMng();
+//        rowDataCombinaison[6] = combination.getWz();
+        rowDataCombinaison[0] = "0";
+        rowDataCombinaison[1] = "1";
+        rowDataCombinaison[2] = "2";
+        rowDataCombinaison[3] = "3";
+        rowDataCombinaison[4] = "4";
+        rowDataCombinaison[5] = "5";
+        rowDataCombinaison[6] = "6";
+
+    }
+
+    private void jtableKundenFilter(String crieteria) {
         TableRowSorter<DefaultTableModel> rowSorter = new TableRowSorter<>(tableModel);
-        rowSorter.setRowFilter(RowFilter.regexFilter("^"+crieteria));
-        jTableKundenl.setRowSorter(rowSorter); 
+        rowSorter.setRowFilter(RowFilter.regexFilter("^" + crieteria));
+        jTableKundenl.setRowSorter(rowSorter);
     }
-    
-     private void jtableArtikelFilter(String crieteria)
-    {
+
+    private void jtableArtikelFilter(String crieteria) {
         TableRowSorter<DefaultTableModel> rowSorter = new TableRowSorter<>(tableModelArtikel);
-        rowSorter.setRowFilter(RowFilter.regexFilter("^"+crieteria));
-        jTableArtikel.setRowSorter(rowSorter); 
+        rowSorter.setRowFilter(RowFilter.regexFilter("^" + crieteria));
+        jTableArtikel.setRowSorter(rowSorter);
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -154,6 +181,8 @@ public class MainWindow extends javax.swing.JFrame {
         jLabel12 = new javax.swing.JLabel();
         jTextArtNummer = new javax.swing.JTextField();
         jTextArtBech = new javax.swing.JTextField();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jTableCombinaison = new javax.swing.JTable();
 
         textAdresse6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -315,6 +344,16 @@ public class MainWindow extends javax.swing.JFrame {
                 "Nummer", "Beschreibung"
             }
         ));
+        jTableArtikel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTableArtikelMouseClicked(evt);
+            }
+        });
+        jTableArtikel.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTableArtikelKeyPressed(evt);
+            }
+        });
         jScrollPane3.setViewportView(jTableArtikel);
 
         jLabel10.setText("Artikel Liste");
@@ -342,6 +381,19 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
+        jTableCombinaison.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Farben", "Groessen", "ME", "PMNG", "VK1", "VPmng", "WZ"
+            }
+        ));
+        jScrollPane5.setViewportView(jTableCombinaison);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -360,44 +412,51 @@ public class MainWindow extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(42, 42, 42)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel7)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel9))
-                        .addGap(46, 46, 46)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addComponent(textOrt, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textPLZ, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textStrasse, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textName3, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textName2, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textName1, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textAdresse, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textLand, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(33, 33, 33)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 521, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 364, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(4, 4, 4))
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(10, 10, 10)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 612, Short.MAX_VALUE)
-                                    .addComponent(jScrollPane2)))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(410, 410, 410)
-                        .addComponent(jLabel12))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(155, 155, 155)
-                        .addComponent(jTextArtNummer, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(102, 102, 102)
-                        .addComponent(jLabel10)
-                        .addGap(123, 123, 123)
-                        .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(90, Short.MAX_VALUE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel2)
+                                            .addComponent(jLabel6)
+                                            .addComponent(jLabel4)
+                                            .addComponent(jLabel5)
+                                            .addComponent(jLabel3)
+                                            .addComponent(jLabel7)
+                                            .addComponent(jLabel8)
+                                            .addComponent(jLabel9))
+                                        .addGap(46, 46, 46)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                            .addComponent(textOrt, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(textPLZ, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(textStrasse, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(textName3, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(textName2, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(textName1, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(textAdresse, javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(textLand, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGap(33, 33, 33)
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 521, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(91, 91, 91)
+                                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 612, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(364, 364, 364)
+                                        .addComponent(jLabel12))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jTextArtNummer, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(101, 101, 101)
+                                        .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)))))
+                .addContainerGap(63, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(385, 385, 385)
+                .addComponent(jLabel10)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -441,21 +500,22 @@ public class MainWindow extends javax.swing.JFrame {
                             .addComponent(jLabel9)
                             .addComponent(textLand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel12)
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel10)
-                            .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(31, 31, 31)
-                        .addComponent(jButton1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel10)
+                .addGap(3, 3, 3)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextArtNummer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addGap(332, 332, 332)
+                .addComponent(jButton1)
                 .addContainerGap())
         );
 
@@ -546,37 +606,37 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void textName1KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textName1KeyReleased
         // TODO add your handling code here:
-         jtableKundenFilter(textName1.getText().toLowerCase());
+        jtableKundenFilter(textName1.getText().toLowerCase());
     }//GEN-LAST:event_textName1KeyReleased
 
     private void textName2KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textName2KeyReleased
         // TODO add your handling code here:
-         jtableKundenFilter(textName2.getText().toLowerCase());
+        jtableKundenFilter(textName2.getText().toLowerCase());
     }//GEN-LAST:event_textName2KeyReleased
 
     private void textName3KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textName3KeyReleased
         // TODO add your handling code here:
-         jtableKundenFilter(textName3.getText().toLowerCase());
+        jtableKundenFilter(textName3.getText().toLowerCase());
     }//GEN-LAST:event_textName3KeyReleased
 
     private void textStrasseKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textStrasseKeyReleased
         // TODO add your handling code here:
-         jtableKundenFilter(textStrasse.getText().toLowerCase());
+        jtableKundenFilter(textStrasse.getText().toLowerCase());
     }//GEN-LAST:event_textStrasseKeyReleased
 
     private void textPLZKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textPLZKeyReleased
         // TODO add your handling code here:
-         jtableKundenFilter(textPLZ.getText().toLowerCase());
+        jtableKundenFilter(textPLZ.getText().toLowerCase());
     }//GEN-LAST:event_textPLZKeyReleased
 
     private void textOrtKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textOrtKeyReleased
         // TODO add your handling code here:
-         jtableKundenFilter(textOrt.getText().toLowerCase());
+        jtableKundenFilter(textOrt.getText().toLowerCase());
     }//GEN-LAST:event_textOrtKeyReleased
 
     private void textLandKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textLandKeyReleased
         // TODO add your handling code here:
-         jtableKundenFilter(textLand.getText().toLowerCase());
+        jtableKundenFilter(textLand.getText().toLowerCase());
     }//GEN-LAST:event_textLandKeyReleased
 
     private void jTextArtNummerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextArtNummerActionPerformed
@@ -592,6 +652,33 @@ public class MainWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
         jtableArtikelFilter(jTextArtBech.getText());
     }//GEN-LAST:event_jTextArtBechKeyReleased
+
+    private void jTableArtikelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTableArtikelMouseClicked
+        // TODO add your handling code here:
+        String nR = jTableArtikel.getValueAt(jTableArtikel.getSelectedRow(), 0).toString();
+        jTextArtNummer.setText(nR);
+        combinations = new ArrayList<>();
+        DocDao dao = new DocDao();
+        try {
+            combinations = dao.getCombinations(nR);
+        } catch (SQLException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        populateListCombinaison(combinations);
+    }//GEN-LAST:event_jTableArtikelMouseClicked
+
+    private void jTableArtikelKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTableArtikelKeyPressed
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == KeyEvent.VK_UP || evt.getKeyCode() == KeyEvent.VK_DOWN) {
+            String nR = jTableArtikel.getValueAt(jTableArtikel.getSelectedRow(), 0).toString();
+            jTextArtNummer.setText(nR);
+//             List<Combination> combinations = daoInterface.getArtikle(nR).getCombinations();
+//        for (int i = 0; i < combinations.size(); i++) {
+//            System.out.println(combinations.get(i).getFarben()+"*"+combinations.get(i).getPmng()); 
+//       }
+            //  populateListCombinaison(daoInterface.getArtikle(nR).getCombinations());
+        }
+    }//GEN-LAST:event_jTableArtikelKeyPressed
 
     /**
      * @param args the command line arguments
@@ -643,7 +730,9 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JTable jTableArtikel;
+    private javax.swing.JTable jTableCombinaison;
     private javax.swing.JTable jTableKundenl;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextArtBech;

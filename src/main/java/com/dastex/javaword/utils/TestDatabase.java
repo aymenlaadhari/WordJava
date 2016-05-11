@@ -8,8 +8,9 @@ package com.dastex.javaword.utils;
 import com.dastex.javaword.dao.DocDao;
 import com.dastex.javaword.dao.DocDaoInterface;
 import com.dastex.javaword.dao.model.Artikel;
-import com.dastex.javaword.dao.model.Kunden;
+import com.dastex.javaword.dao.model.Combination;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  *
@@ -26,9 +27,10 @@ public class TestDatabase {
         // TODO code application logic here
         
         //showArtikles();
-        showOneArtikel();
+       // showOneArtikel();
         //getFarben();
         //getPrises();
+        showListCombination();
      
     
 }
@@ -49,17 +51,19 @@ public class TestDatabase {
       DocDaoInterface daoInterface;
       daoInterface = new DocDao();
         Artikel artikel = daoInterface.getArtikle("1701000");
-        System.out.println(artikel.getNr()+"*"+artikel.getBezeichnung()+"*"+artikel.getFarben()+"*"+ artikel.getBisGroesse()+"*"+artikel.getListPrises().toString());
+        System.out.println(artikel.getNr()+"*"+artikel.getBezeichnung()+"*"+artikel.getFarben()+"*"+ artikel.getBisGroesse()+"*"+artikel.getCombinations().toString());
         
     }
     
-  private static void getPrises() throws SQLException
-  {
-      DocDao docDao = new DocDao();
-        for (String prise : docDao.getPrises("1701000")) {
-            System.out.println(prise);
-        }
-      
-  }
+    private static void showListCombination() throws SQLException
+    {
+        DocDao dao = new DocDao();
+        List<Combination> combinations = dao.getCombinations("1701000");
+        for (int i = 0; i < combinations.size(); i++) {
+            System.out.println(combinations.get(i).getFarben()+"*"+combinations.get(i).getPmng()); 
+       }
+        
+    }
+
     
 }

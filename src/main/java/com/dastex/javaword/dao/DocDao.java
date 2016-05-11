@@ -6,6 +6,7 @@
 package com.dastex.javaword.dao;
 
 import com.dastex.javaword.dao.model.Artikel;
+import com.dastex.javaword.dao.model.Combination;
 import com.dastex.javaword.dao.model.Kunden;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -102,7 +103,7 @@ public class DocDao implements DocDaoInterface {
             artikel.setBezeichnung(rsArtikel.getString("Bezeichnung"));
             artikel.setFarben(getFarben(artNummer));
             artikel.setBisGroesse(getGroessen(artNummer));
-            artikel.setListPrises(getPrises(artNummer));
+            artikel.setCombinations(getCombinations(artNummer));
            }
             else{
                 System.out.println("result is empty");
@@ -192,9 +193,9 @@ public class DocDao implements DocDaoInterface {
     }
     
     
-    public List<String> getPrises(String artNummer) throws SQLException
+    public List<Combination> getCombinations(String artNummer) throws SQLException
     {
-         List<String> prices = new ArrayList<>();
+         List<Combination> combinations = new ArrayList<>();
         String sql = "SELECT hf_artikel_farben_2_gleicher_Preis( Preisstaffel.At_ID, Preisstaffel.VK_1, Preisstaffel.Preismenge ) AS 'Farben', hf_artikel_groessen_2_gleicher_Preis( Preisstaffel.At_ID, Preisstaffel.VK_1, Preisstaffel.Preismenge ) AS 'Groessen', Preisstaffel.VK_1 AS 'VK1', Preisstaffel.Waehrungszeichen AS 'WZ', Preisstaffel.Preismenge AS 'P_Mng', Preisstaffel.Mengeneinheit AS 'ME', Preisstaffel.Verpackungsmenge AS 'VP_Mng' FROM Preisstaffel, Groessenpreisstaffel, Artikel, Groessenstaffel WHERE Preisstaffel.Groessen_ID = Groessenpreisstaffel.ID AND Preisstaffel.At_ID = Groessenpreisstaffel.At_ID AND Preisstaffel.At_ID = Artikel.ID AND Artikel.Groessenstaffel_ID = Groessenstaffel.ID AND Preisstaffel.Nr = '02' AND Artikel.Nr = '"+artNummer+"' AND Groessenpreisstaffel.Groesse <> '<?>' GROUP BY Farben, Groessen, Preisstaffel.VK_1, Preisstaffel.Waehrungszeichen, Preisstaffel.Preismenge, Preisstaffel.Mengeneinheit, Preisstaffel.Verpackungsmenge ORDER BY 3";
           Connection conProdukt = DriverManager.getConnection(dburlProdukt);
         Statement statementPro = conProdukt.createStatement();
@@ -202,11 +203,19 @@ public class DocDao implements DocDaoInterface {
         ResultSet rsPrises = statementPro.executeQuery(sql);
        
           while (rsPrises.next()) {
+              Combination ret = new Combination();
 
-            String ret = rsPrises.getString("VK1");
-              prices.add(ret);
+            ret.setFarben(rsPrises.getString("Farben"));
+            ret.setGroessen(rsPrises.getString("Groessen"));
+            ret.setVk1(rsPrises.getString("VK1"));
+            ret.setWz(rsPrises.getString("WZ"));
+            ret.setPmng(rsPrises.getString("P_Mng"));
+            ret.setMe(rsPrises.getString("ME"));
+            ret.setVpMng(rsPrises.getString("VP_Mng"));
+            combinations.add(ret);
+              
         }
-       return prices;
+       return combinations;
     }
   
         

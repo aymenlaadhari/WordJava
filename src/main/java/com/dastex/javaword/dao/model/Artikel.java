@@ -83,7 +83,7 @@ public class Artikel implements Serializable {
 
     private String liefertermin8;
     private String lieferzeit;
-    private List<String> listPrises ;
+    private List<Combination> combinations ;
     private String matchcode;
 
 
@@ -212,6 +212,14 @@ public class Artikel implements Serializable {
         return farben;
     }
 
+    public List<Combination> getCombinations() {
+        return combinations;
+    }
+
+    public void setCombinations(List<Combination> combinations) {
+        this.combinations = combinations;
+    }
+
     
     
     public String getFirma() {
@@ -300,9 +308,7 @@ public class Artikel implements Serializable {
     public String getLieferzeit() {
         return lieferzeit;
     }
-    public List<String> getListPrises() {
-        return listPrises;
-    }
+
     public String getMatchcode() {
         return matchcode;
     }
@@ -583,9 +589,7 @@ public class Artikel implements Serializable {
     public void setLieferzeit(String lieferzeit) {
         this.lieferzeit = lieferzeit;
     }
-    public void setListPrises(List<String> listPrises) {
-        this.listPrises = listPrises;
-    }
+  
     public void setMatchcode(String matchcode) {
         this.matchcode = matchcode;
     }

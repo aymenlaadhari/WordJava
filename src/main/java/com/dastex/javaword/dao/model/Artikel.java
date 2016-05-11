@@ -6,6 +6,7 @@
 package com.dastex.javaword.dao.model;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  *
@@ -44,6 +45,7 @@ public class Artikel implements Serializable {
     private String firmakurzzeichen;
     private String getrenntePreisstaffel;
     private String gewicht;
+    private String groessen;
 
 
     private String groessenstaffel;
@@ -81,6 +83,7 @@ public class Artikel implements Serializable {
 
     private String liefertermin8;
     private String lieferzeit;
+    private List<String> listPrises ;
     private String matchcode;
 
 
@@ -117,6 +120,7 @@ public class Artikel implements Serializable {
     private String warengruppeID;
     private String warengruppeNr;
     private String zollNr;
+    
 
     public Artikel() {
     }
@@ -157,6 +161,8 @@ public class Artikel implements Serializable {
     public String getBestellNr() {
         return bestellNr;
     }
+
+    
     public String getBezeichnung() {
         return bezeichnung;
     }
@@ -205,6 +211,9 @@ public class Artikel implements Serializable {
     public String getFarben() {
         return farben;
     }
+
+    
+    
     public String getFirma() {
         return firma;
     }
@@ -219,6 +228,9 @@ public class Artikel implements Serializable {
     }
     public String getGewicht() {
         return gewicht;
+    }
+    public String getGroessen() {
+        return groessen;
     }
     public String getGroessenstaffel() {
         return groessenstaffel;
@@ -287,6 +299,9 @@ public class Artikel implements Serializable {
     }
     public String getLieferzeit() {
         return lieferzeit;
+    }
+    public List<String> getListPrises() {
+        return listPrises;
     }
     public String getMatchcode() {
         return matchcode;
@@ -487,6 +502,9 @@ public class Artikel implements Serializable {
     public void setGewicht(String gewicht) {
         this.gewicht = gewicht;
     }
+    public void setGroessen(String groessen) {
+        this.groessen = groessen;
+    }
     public void setGroessenstaffel(String groessenstaffel) {
         this.groessenstaffel = groessenstaffel;
     }
@@ -564,6 +582,9 @@ public class Artikel implements Serializable {
     }
     public void setLieferzeit(String lieferzeit) {
         this.lieferzeit = lieferzeit;
+    }
+    public void setListPrises(List<String> listPrises) {
+        this.listPrises = listPrises;
     }
     public void setMatchcode(String matchcode) {
         this.matchcode = matchcode;

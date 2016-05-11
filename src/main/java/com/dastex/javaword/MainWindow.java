@@ -9,27 +9,13 @@ import com.dastex.javaword.dao.DocDao;
 import com.dastex.javaword.dao.DocDaoInterface;
 import com.dastex.javaword.dao.model.Kunden;
 import java.awt.HeadlessException;
-import java.awt.Toolkit;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
-import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTable.XWPFBorderType;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 
@@ -39,13 +25,13 @@ import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    private String Adresse, Lieferant, Produkt;
     private final DocDaoInterface daoInterface;
     String[] columnNames = {"Nummer",
         "Name",
         "PLZ",
         "Straße",
         "Ort", "Land"};
+    Object[] rowData = new Object[6];
     DefaultListModel<String> model;
     DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
@@ -54,15 +40,18 @@ public class MainWindow extends javax.swing.JFrame {
      */
     public MainWindow() {
         initComponents();
-
+        tableAll.setAutoCreateRowSorter(true);
         daoInterface = new DocDao();
+        populateResult(textAdresse.getText());
     }
 
     private void populateResult(String nummer) {
 
         daoInterface.getListKunden().stream().forEach((listKunden) -> {
             //System.out.println(listKunden.getName1()+"*"+listKunden.getOrt());
-
+            populateJtable(listKunden);
+            tableModel.addRow(rowData);
+            tableAll.setModel(tableModel);
             if (listKunden.getNr() == null ? nummer == null : listKunden.getNr().equals(nummer)) {
                 System.out.println(listKunden.getName1());
                 textName1.setText(listKunden.getName1());
@@ -70,10 +59,19 @@ public class MainWindow extends javax.swing.JFrame {
                 textPLZ.setText(listKunden.getPlz());
                 textOrt.setText(listKunden.getOrt());
                 textLand.setText(listKunden.getLand());
-
             }
 
         });
+
+    }
+
+    private void populateJtable(Kunden kunden) {
+        rowData[0] = kunden.getNr();
+        rowData[1] = kunden.getName1();
+        rowData[2] = kunden.getPlz();
+        rowData[3] = kunden.getStrasse();
+        rowData[4] = kunden.getOrt();
+        rowData[5] = kunden.getLand();
 
     }
 
@@ -208,6 +206,11 @@ public class MainWindow extends javax.swing.JFrame {
                 return types [columnIndex];
             }
         });
+        tableAll.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableAllMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tableAll);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -287,8 +290,8 @@ public class MainWindow extends javax.swing.JFrame {
                     .addComponent(jLabel9)
                     .addComponent(textLand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(47, 47, 47)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
                 .addComponent(jButton1)
                 .addGap(31, 31, 31))
         );
@@ -305,7 +308,7 @@ public class MainWindow extends javax.swing.JFrame {
 
                 WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.createPackage();
                 wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Title", textName1.getText() + "\n" + textPLZ.getText() + "\n" + textStrasse.getText() + "\n" + textOrt.getText());
-                wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Subtitle","Das ist Subtitle!");
+                wordMLPackage.getMainDocumentPart().addStyledParagraphOfText("Subtitle", "Das ist Subtitle!");
                 wordMLPackage.save(fileOutputStream);
                 JOptionPane.showMessageDialog(null, "Successeful created");
             } catch (Docx4JException ex) {
@@ -319,7 +322,7 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void textAdresseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textAdresseActionPerformed
         // TODO add your handling code here:
-        populateResult(textAdresse.getText());
+
 
     }//GEN-LAST:event_textAdresseActionPerformed
 
@@ -355,6 +358,24 @@ public class MainWindow extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_textLandActionPerformed
 
+    private void tableAllMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableAllMouseClicked
+        // TODO add your handling code here:
+        String nR = tableAll.getValueAt(tableAll.getSelectedRow(), 0).toString();
+        String name = tableAll.getValueAt(tableAll.getSelectedRow(), 1).toString();
+        String plz = tableAll.getValueAt(tableAll.getSelectedRow(), 2).toString();
+        String strasse = tableAll.getValueAt(tableAll.getSelectedRow(), 3).toString();
+        String ort = tableAll.getValueAt(tableAll.getSelectedRow(), 4).toString();
+        String land = tableAll.getValueAt(tableAll.getSelectedRow(), 5).toString();
+        // print first column value from selected row
+        System.out.println(nR + "*" + name + "*" + plz);
+        textAdresse.setText(nR);
+        textName1.setText(name);
+        textPLZ.setText(plz);
+        textStrasse.setText(strasse);
+        textOrt.setText(ort);
+        textLand.setText(land);
+    }//GEN-LAST:event_tableAllMouseClicked
+
     /**
      * @param args the command line arguments
      */
@@ -383,10 +404,8 @@ public class MainWindow extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MainWindow().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new MainWindow().setVisible(true);
         });
     }
 

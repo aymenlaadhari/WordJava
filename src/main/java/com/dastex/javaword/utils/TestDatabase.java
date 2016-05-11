@@ -26,8 +26,9 @@ public class TestDatabase {
         // TODO code application logic here
         
         //showArtikles();
-        //showOneArtikel();
-        getFarben();
+        showOneArtikel();
+        //getFarben();
+        //getPrises();
      
     
 }
@@ -47,15 +48,18 @@ public class TestDatabase {
     {
       DocDaoInterface daoInterface;
       daoInterface = new DocDao();
-        Artikel artikel = daoInterface.getArtikle();
-        System.out.println(artikel.getNr());
+        Artikel artikel = daoInterface.getArtikle("1701000");
+        System.out.println(artikel.getNr()+"*"+artikel.getBezeichnung()+"*"+artikel.getFarben()+"*"+ artikel.getBisGroesse()+"*"+artikel.getListPrises().toString());
         
     }
     
-    private static void getFarben() throws SQLException
-    {
-        DocDao dao = new DocDao();
-       dao.getfarbenByStoredProcedure();
-   }
+  private static void getPrises() throws SQLException
+  {
+      DocDao docDao = new DocDao();
+        for (String prise : docDao.getPrises("1701000")) {
+            System.out.println(prise);
+        }
+      
+  }
     
 }

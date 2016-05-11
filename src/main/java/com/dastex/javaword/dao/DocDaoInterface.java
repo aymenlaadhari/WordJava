@@ -19,7 +19,7 @@ public interface DocDaoInterface {
     public List<Kunden> getListKunden();
     public Kunden getKundenByCriteria();
     public List<Artikel> getListArtikel();
-    public Artikel getArtikle();
+    public Artikel getArtikle(String artNummer);
  
     
 }

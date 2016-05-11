@@ -6,7 +6,6 @@
 package com.dastex.javaword.dao;
 
 import com.dastex.javaword.dao.model.Artikel;
-import com.dastex.javaword.dao.model.Artikelzusatztext;
 import com.dastex.javaword.dao.model.Kunden;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -89,19 +88,21 @@ public class DocDao implements DocDaoInterface {
     }
 
     @Override
-    public Artikel getArtikle() {
+    public Artikel getArtikle(String artNummer) {
         Artikel artikel = null ;
         try (
                 // Connect to Sybase Database
                 Connection conProdukt = DriverManager.getConnection(dburlProdukt);
                 Statement statementPro = conProdukt.createStatement();
-                ResultSet rsArtikel = statementPro.executeQuery("SELECT * FROM Artikel, Artikelzusatztext WHERE Artikelzusatztext.At_ID = Artikel.ID AND Artikelzusatztext.Sprache = 'XAD' AND Artikel.Nr = '1701000'");) {
+                ResultSet rsArtikel = statementPro.executeQuery("SELECT * FROM Artikel, Artikelzusatztext WHERE Artikelzusatztext.At_ID = Artikel.ID AND Artikelzusatztext.Sprache = 'XAD' AND Artikel.Nr = '"+artNummer+"'");) {
             System.out.println("getting Result");
             if (rsArtikel.next()) {
             artikel = new Artikel();
             artikel.setNr(rsArtikel.getString("Nr"));
-//            artikel.setFarben(getFarben());
-//            artikel.setBisGroesse(getGroessen());
+            artikel.setBezeichnung(rsArtikel.getString("Bezeichnung"));
+            artikel.setFarben(getFarben(artNummer));
+            artikel.setBisGroesse(getGroessen(artNummer));
+            artikel.setListPrises(getPrises(artNummer));
            }
             else{
                 System.out.println("result is empty");
@@ -131,6 +132,7 @@ public class DocDao implements DocDaoInterface {
                 artikel = new Artikel();
                 artikel.setNr(rs.getString("Nr"));
                 artikel.setId(rs.getString("ID"));
+                
                 artikels.add(artikel);
             }
             System.out.println("Data sucefully loaded");
@@ -157,33 +159,57 @@ public class DocDao implements DocDaoInterface {
     
     
     
-    public String getFarben() throws SQLException {
+    private String getFarben(String artNummer) throws SQLException {
+        String proc = "SELECT hf_artikel_farben_2(Artikel.ID) FROM Artikel WHERE Artikel.Nr = '"+artNummer+"'";
+        String ret = null;
         Connection conProdukt = DriverManager.getConnection(dburlProdukt);
-        Statement statementPro = conProdukt.createStatement();
+        Statement s = conProdukt.createStatement();
         System.out.println("getting Farben");
-        ResultSet rsFarben = statementPro.executeQuery("SELECT hf_artikel_farben_2(Artikel.ID) FROM Artikel WHERE Artikel.Nr = '1701000'");
-        return rsFarben.getString(1);
+        ResultSet rs = s.executeQuery(proc);
+        while (rs.next()) {
+            ret = rs.getString(1);
+       
+        }
+        
+       return ret;
     }
 
-    public String getGroessen() throws SQLException {
+    private String getGroessen(String artNummer) throws SQLException {
+        String ret = null;
+        String sql = "SELECT hf_artikel_groessen_2(Artikel.ID) FROM Artikel WHERE Artikel.Nr = '"+artNummer+"'";
         Connection conProdukt = DriverManager.getConnection(dburlProdukt);
         Statement statementPro = conProdukt.createStatement();
         System.out.println("getting Groessen");
-        ResultSet rsGroessen = statementPro.executeQuery("SELECT hf_artikel_groessen_2(Artikel.ID) FROM Artikel WHERE Artikel.Nr = '1701000'");
-        return rsGroessen.getString("hf_artikel_groessen_2(Artikel.ID)");
+        ResultSet rsGroessen = statementPro.executeQuery(sql);
+          while (rsGroessen.next()) {
+
+            ret = rsGroessen.getString(1);
+       
+        }
+        
+       return ret;
     }
     
-    public void getfarbenByStoredProcedure() throws SQLException
+    
+    public List<String> getPrises(String artNummer) throws SQLException
     {
-        String proc = "{? call hf_artikel_farben_2(?)}";
-        Connection conProdukt = DriverManager.getConnection(dburlProdukt);
-        CallableStatement cs = conProdukt.prepareCall(proc);
-        cs.registerOutParameter(1,Types.VARCHAR);
-        cs.setString(2, "12");
-        cs.execute();
-        System.out.println(cs.getString(1));
+         List<String> prices = new ArrayList<>();
+        String sql = "SELECT hf_artikel_farben_2_gleicher_Preis( Preisstaffel.At_ID, Preisstaffel.VK_1, Preisstaffel.Preismenge ) AS 'Farben', hf_artikel_groessen_2_gleicher_Preis( Preisstaffel.At_ID, Preisstaffel.VK_1, Preisstaffel.Preismenge ) AS 'Groessen', Preisstaffel.VK_1 AS 'VK1', Preisstaffel.Waehrungszeichen AS 'WZ', Preisstaffel.Preismenge AS 'P_Mng', Preisstaffel.Mengeneinheit AS 'ME', Preisstaffel.Verpackungsmenge AS 'VP_Mng' FROM Preisstaffel, Groessenpreisstaffel, Artikel, Groessenstaffel WHERE Preisstaffel.Groessen_ID = Groessenpreisstaffel.ID AND Preisstaffel.At_ID = Groessenpreisstaffel.At_ID AND Preisstaffel.At_ID = Artikel.ID AND Artikel.Groessenstaffel_ID = Groessenstaffel.ID AND Preisstaffel.Nr = '02' AND Artikel.Nr = '"+artNummer+"' AND Groessenpreisstaffel.Groesse <> '<?>' GROUP BY Farben, Groessen, Preisstaffel.VK_1, Preisstaffel.Waehrungszeichen, Preisstaffel.Preismenge, Preisstaffel.Mengeneinheit, Preisstaffel.Verpackungsmenge ORDER BY 3";
+          Connection conProdukt = DriverManager.getConnection(dburlProdukt);
+        Statement statementPro = conProdukt.createStatement();
+        System.out.println("getting Prises");
+        ResultSet rsPrises = statementPro.executeQuery(sql);
+       
+          while (rsPrises.next()) {
 
-
+            String ret = rsPrises.getString("VK1");
+              prices.add(ret);
+        }
+       return prices;
     }
+  
+        
+
+
 
 }

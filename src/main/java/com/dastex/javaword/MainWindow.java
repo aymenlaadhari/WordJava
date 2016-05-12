@@ -16,7 +16,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,8 +27,11 @@ import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import org.docx4j.model.datastorage.migration.VariablePrepare;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
 import org.docx4j.wml.ContentAccessor;
 import org.docx4j.wml.Text;
 
@@ -46,20 +51,24 @@ public class MainWindow extends javax.swing.JFrame {
         "Straße",
         "Ort", "Land"};
     private String templatePath, docOutputPath;
-    private String eintritt, artBeschreibung, artFarben, artGroessen, preis;
+    private String eintritt, artBeschreibung, artFarben, artGroessen, preis, artNum;
     Object[] rowData = new Object[6];
     Object[] rowDataArtikel = new Object[5];
-    Object[] rowDataCombinaison = new Object[7];
+    Object[] rowDataCombinaison = new Object[9];
     DefaultTableModel tableModel, tableModelArtikel, tableModelCombinaison;
     WordprocessingMLPackage template;
+    DocDao dao;
+    Artikel artikel;
 
     /**
      * Creates new form MainWindow
+     *
      * @throws org.docx4j.openpackaging.exceptions.Docx4JException
      * @throws java.io.FileNotFoundException
      */
     public MainWindow() throws Docx4JException, FileNotFoundException {
         initComponents();
+        dao = new DocDao();
         tableModel = (DefaultTableModel) jTableKundenl.getModel();
         tableModelArtikel = (DefaultTableModel) jTableArtikel.getModel();
         tableModelCombinaison = (DefaultTableModel) jTableCombinaison.getModel();
@@ -70,8 +79,7 @@ public class MainWindow extends javax.swing.JFrame {
         artikels = daoInterface.getListArtikel();
         populateListKunden();
         populateListArtikel();
-        
-       
+
     }
 
     private WordprocessingMLPackage getTemplate(String name) throws Docx4JException, FileNotFoundException {
@@ -97,16 +105,16 @@ public class MainWindow extends javax.swing.JFrame {
         return result;
     }
 
-    private void replacePlaceholder(WordprocessingMLPackage template, String name, String placeholder ) {
-		List<Object> texts = getAllElementFromObject(template.getMainDocumentPart(), Text.class);
- 
-		for (Object text : texts) {
-			Text textElement = (Text) text;
-			if (textElement.getValue().equals(placeholder)) {
-				textElement.setValue(name);
-			}
-		}
-	}
+    private void replacePlaceholder(WordprocessingMLPackage template, String name, String placeholder) {
+        List<Object> texts = getAllElementFromObject(template.getMainDocumentPart(), Text.class);
+
+        for (Object text : texts) {
+            Text textElement = (Text) text;
+            if (textElement.getValue().equals(placeholder)) {
+                textElement.setValue(name);
+            }
+        }
+    }
 
     private void writeDocxToStream(WordprocessingMLPackage template, String target) throws IOException, Docx4JException {
         File f = new File(target);
@@ -160,11 +168,14 @@ public class MainWindow extends javax.swing.JFrame {
     private void populateJtableCombinaison(Combination combination) {
         rowDataCombinaison[0] = combination.getFarben();
         rowDataCombinaison[1] = combination.getGroessen();
-        rowDataCombinaison[2] = combination.getMe();
-        rowDataCombinaison[3] = combination.getPmng();
-        rowDataCombinaison[4] = combination.getVk1();
-        rowDataCombinaison[5] = combination.getVpMng();
-        rowDataCombinaison[6] = combination.getWz();
+        rowDataCombinaison[2] = combination.getArt();
+        rowDataCombinaison[3] = combination.getAb();
+        rowDataCombinaison[4] = combination.getPreis();
+        rowDataCombinaison[5] = combination.getWz();
+        rowDataCombinaison[6] = combination.getPmng();
+
+        rowDataCombinaison[7] = combination.getMe();
+        rowDataCombinaison[8] = combination.getVpMng();
 
     }
 
@@ -421,13 +432,13 @@ public class MainWindow extends javax.swing.JFrame {
 
         jTableCombinaison.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Farben", "Groessen", "ME", "PMNG", "VK1", "VPmng", "WZ"
+                "Farben", "Groessen", "Art", "Ab", "Preis", "WZ", "P_Mng", "ME", "VP_Mng"
             }
         ));
         jTableCombinaison.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -450,11 +461,6 @@ public class MainWindow extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(42, 42, 42)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 364, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -489,6 +495,11 @@ public class MainWindow extends javax.swing.JFrame {
                                 .addComponent(jTextArtNummer, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(101, 101, 101)
                                 .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 364, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 530, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -566,11 +577,10 @@ public class MainWindow extends javax.swing.JFrame {
 
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        try {
-            // TODO add your handling code here:
-            
-//        eintritt = jAreaEintritt.getText();
-//        String neString = preis.replace(".", ",");
+
+        // TODO add your handling code here:
+        eintritt = jAreaEintritt.getText();
+        String neString = preis.replace(".", ",");
 //        try {
 //            try (FileOutputStream fileOutputStream = new FileOutputStream("First.docx")) {
 //
@@ -587,12 +597,30 @@ public class MainWindow extends javax.swing.JFrame {
 //        } catch (IOException | HeadlessException e) {
 //            JOptionPane.showMessageDialog(null, e);
 //        }
-           getTemplate("template.docx");
-        } catch (Docx4JException | FileNotFoundException ex) {
+        try {
+           
+            getTemplate("template.docx");
+            MainDocumentPart documentPart = template.getMainDocumentPart();
+            HashMap<String, String> mappings = new HashMap<>();
+            mappings.put("name", textName1.getText());
+            mappings.put("strasse", textStrasse.getText());
+            mappings.put("plz", textStrasse.getText());
+            mappings.put("ort", textStrasse.getText());
+            mappings.put("eintritt", eintritt);
+            mappings.put("artnum", artNum);
+            mappings.put("bezeichung", artBeschreibung);
+            mappings.put("farben", artFarben);
+            mappings.put("gros", artGroessen);
+
+            VariablePrepare.prepare(template);
+            documentPart.variableReplace(mappings);
+        } catch (JAXBException | Docx4JException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
-               replacePlaceholder(template, "OK", "geehrter");
-               template.getMainDocumentPart().addStyledParagraphOfText("Nummerierung1", eintritt + "+++" + artBeschreibung + "+++" + artFarben + "+++" + artGroessen);
+        //replacePlaceholder(template, "OK", "geehrter");
+        template.getMainDocumentPart().addStyledParagraphOfText("Nummerierung1", eintritt + "+++" + artBeschreibung + "+++" + artFarben + "+++" + artGroessen);
         try {
             writeDocxToStream(template, "First.docx");
             JOptionPane.showMessageDialog(null, "Successeful created");
@@ -713,17 +741,23 @@ public class MainWindow extends javax.swing.JFrame {
     private void jTableArtikelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTableArtikelMouseClicked
         // TODO add your handling code here:
 
-        String nR = jTableArtikel.getValueAt(jTableArtikel.getSelectedRow(), 0).toString();
-        Artikel artikel = daoInterface.getArtikle(nR);
+        artNum = jTableArtikel.getValueAt(jTableArtikel.getSelectedRow(), 0).toString();
+        artikel = daoInterface.getArtikle(artNum);
         //artBeschreibung = jTableArtikel.getValueAt(jTableArtikel.getSelectedRow(), 1).toString();
         artBeschreibung = artikel.getText();
-        jTextArtNummer.setText(nR);
-        List<Combination> combinations = artikel.getCombinations();
-        if (!combinations.isEmpty()) {
-            populateListCombinaison(combinations);
+        jTextArtNummer.setText(artNum);
+        List<Combination> combinations = null;
+        try {
+            combinations = dao.getListCombProc(textAdresse.getText(), artNum);
+        } catch (SQLException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (combinations.isEmpty()) {
 
         } else {
             tableModelCombinaison.setRowCount(0);
+            populateListCombinaison(combinations);
+
         }
 
     }//GEN-LAST:event_jTableArtikelMouseClicked
@@ -744,8 +778,8 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void jTableCombinaisonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTableCombinaisonMouseClicked
         // TODO add your handling code here:
-        artFarben = jTableCombinaison.getValueAt(jTableCombinaison.getSelectedRow(), 0).toString();
-        artGroessen = jTableCombinaison.getValueAt(jTableCombinaison.getSelectedRow(), 1).toString();
+        artFarben = artikel.getFarben();
+        artGroessen = artikel.getGroessen();
         preis = jTableCombinaison.getValueAt(jTableCombinaison.getSelectedRow(), 4).toString();
     }//GEN-LAST:event_jTableCombinaisonMouseClicked
 

@@ -10,7 +10,31 @@ package com.dastex.javaword.dao.model;
  * @author aladhari
  */
 public class Combination {
-    private String farben, groessen, me, pmng, vk1, vpMng, wz;
+    private String farben, groessen, me, pmng, vk1, vpMng, wz, art, ab, preis;
+
+    public String getPreis() {
+        return preis;
+    }
+
+    public void setPreis(String preis) {
+        this.preis = preis;
+    }
+
+    public String getArt() {
+        return art;
+    }
+
+    public void setArt(String art) {
+        this.art = art;
+    }
+
+    public String getAb() {
+        return ab;
+    }
+
+    public void setAb(String ab) {
+        this.ab = ab;
+    }
 
     public String getFarben() {
         return farben;

@@ -60,7 +60,7 @@ public class TestDatabase {
         DocDao dao = new DocDao();
         List<Combination> combinations = dao.getCombinations("1701000");
         for (int i = 0; i < combinations.size(); i++) {
-            System.out.println(combinations.get(i).getFarben()+"*"+combinations.get(i).getPmng()); 
+            System.out.println(combinations.get(i).getFarben()+"*"+combinations.get(i).getGroessen()+"*"+combinations.get(i).getMe()+"*"+combinations.get(i).getPmng()+"*"+combinations.get(i).getVk1()+"*"+combinations.get(i).getVpMng()+"*"+combinations.get(i).getWz()); 
        }
         
     }

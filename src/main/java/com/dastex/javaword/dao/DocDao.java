@@ -103,7 +103,7 @@ public class DocDao implements DocDaoInterface {
                 artikel.setBezeichnung(rsArtikel.getString("Bezeichnung"));
                 artikel.setText(rsArtikel.getString("Text"));
                 artikel.setFarben(getFarben(artNummer));
-                artikel.setBisGroesse(getGroessen(artNummer));
+                artikel.setGroessen(getGroessen(artNummer));
                 artikel.setCombinations(getCombinations(artNummer));
             } else {
                 artikel = new Artikel();

@@ -11,6 +11,7 @@ import com.dastex.javaword.dao.model.Artikel;
 import com.dastex.javaword.dao.model.Combination;
 import com.dastex.javaword.dao.model.Kunden;
 import java.awt.HeadlessException;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -18,8 +19,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -28,12 +32,15 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import org.docx4j.XmlUtils;
 import org.docx4j.model.datastorage.migration.VariablePrepare;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
 import org.docx4j.wml.ContentAccessor;
+import org.docx4j.wml.Tbl;
 import org.docx4j.wml.Text;
+import org.docx4j.wml.Tr;
 
 /**
  *
@@ -55,10 +62,11 @@ public class MainWindow extends javax.swing.JFrame {
     Object[] rowData = new Object[6];
     Object[] rowDataArtikel = new Object[5];
     Object[] rowDataCombinaison = new Object[9];
-    DefaultTableModel tableModel, tableModelArtikel, tableModelCombinaison;
+    DefaultTableModel tableModel, tableModelArtikel, tableModelCombinaison, tableModelSelected;
     WordprocessingMLPackage template;
     DocDao dao;
     Artikel artikel;
+    int[] selection;
 
     /**
      * Creates new form MainWindow
@@ -72,6 +80,11 @@ public class MainWindow extends javax.swing.JFrame {
         tableModel = (DefaultTableModel) jTableKundenl.getModel();
         tableModelArtikel = (DefaultTableModel) jTableArtikel.getModel();
         tableModelCombinaison = (DefaultTableModel) jTableCombinaison.getModel();
+        tableModelSelected = (DefaultTableModel) jTableSelectedArtikel.getModel();
+        tableModel.setRowCount(0);
+        tableModelArtikel.setRowCount(0);
+        tableModelCombinaison.setRowCount(0);
+        tableModelSelected.setRowCount(0);
         jTableKundenl.setAutoCreateRowSorter(true);
         jTableArtikel.setAutoCreateRowSorter(true);
         daoInterface = new DocDao();
@@ -114,6 +127,56 @@ public class MainWindow extends javax.swing.JFrame {
                 textElement.setValue(name);
             }
         }
+    }
+
+    private void replaceTable(String[] placeholders, List<HashMap<String, String>> textToAdd,
+            WordprocessingMLPackage template) throws Docx4JException, JAXBException {
+        List<Object> tables = getAllElementFromObject(template.getMainDocumentPart(), Tbl.class);
+
+        // 1. find the table
+        Tbl tempTable = getTemplateTable(tables, placeholders[0]);
+        List<Object> rows = getAllElementFromObject(tempTable, Tr.class);
+
+        // first row is header, second row is content
+        if (rows.size() == 2) {
+            // this is our template row
+            Tr templateRow = (Tr) rows.get(1);
+
+            for (HashMap<String, String> replacements : textToAdd) {
+                // 2 and 3 are done in this method
+                addRowToTable(tempTable, templateRow, replacements);
+            }
+
+            // 4. remove the template row
+            tempTable.getContent().remove(templateRow);
+        }
+    }
+
+    private Tbl getTemplateTable(List<Object> tables, String templateKey) throws Docx4JException, JAXBException {
+        for (Object tbl : tables) {
+            List<?> textElements = getAllElementFromObject(tbl, Text.class);
+            for (Object text : textElements) {
+                Text textElement = (Text) text;
+                if (textElement.getValue() != null && textElement.getValue().equals(templateKey)) {
+                    return (Tbl) tbl;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static void addRowToTable(Tbl reviewtable, Tr templateRow, HashMap<String, String> replacements) {
+        Tr workingRow = (Tr) XmlUtils.deepCopy(templateRow);
+        List textElements = getAllElementFromObject(workingRow, Text.class);
+        for (Object object : textElements) {
+            Text text = (Text) object;
+            String replacementValue = (String) replacements.get(text.getValue());
+            if (replacementValue != null) {
+                text.setValue(replacementValue);
+            }
+        }
+
+        reviewtable.getContent().add(workingRow);
     }
 
     private void writeDocxToStream(WordprocessingMLPackage template, String target) throws IOException, Docx4JException {
@@ -224,14 +287,27 @@ public class MainWindow extends javax.swing.JFrame {
         jAreaEintritt = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTableArtikel = new javax.swing.JTable();
-        jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
         jTextArtNummer = new javax.swing.JTextField();
         jTextArtBech = new javax.swing.JTextField();
         jScrollPane5 = new javax.swing.JScrollPane();
         jTableCombinaison = new javax.swing.JTable();
+        jLabel13 = new javax.swing.JLabel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTextAreaArtText = new javax.swing.JTextArea();
+        jLabel14 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        jTextFarben = new javax.swing.JTextField();
+        jLabel16 = new javax.swing.JLabel();
+        jTextGroessen = new javax.swing.JTextField();
+        jLabel17 = new javax.swing.JLabel();
+        jTextPrise = new javax.swing.JTextField();
+        jLabel18 = new javax.swing.JLabel();
+        jButtonAddSelection = new javax.swing.JButton();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        jTableSelectedArtikel = new javax.swing.JTable();
+        jButtonClearSelected = new javax.swing.JButton();
 
         textAdresse6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -405,13 +481,9 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(jTableArtikel);
 
-        jLabel10.setText("Artikel Liste");
-
         jLabel11.setText("Kunden Liste");
 
         jLabel1.setText("Kunden Info");
-
-        jLabel12.setText("Eintritt");
 
         jTextArtNummer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -424,6 +496,11 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
+        jTextArtBech.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextArtBechActionPerformed(evt);
+            }
+        });
         jTextArtBech.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 jTextArtBechKeyReleased(evt);
@@ -448,6 +525,60 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jScrollPane5.setViewportView(jTableCombinaison);
 
+        jLabel13.setText("ArtNumm");
+
+        jTextAreaArtText.setColumns(20);
+        jTextAreaArtText.setRows(5);
+        jScrollPane4.setViewportView(jTextAreaArtText);
+
+        jLabel14.setText("ArtText");
+
+        jLabel15.setText("ArtBeschr");
+
+        jTextFarben.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextFarbenActionPerformed(evt);
+            }
+        });
+
+        jLabel16.setText("Farben");
+
+        jLabel17.setText("Groessen");
+
+        jLabel18.setText("Prise");
+
+        jButtonAddSelection.setText("Add Artikel->");
+        jButtonAddSelection.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAddSelectionActionPerformed(evt);
+            }
+        });
+
+        jTableSelectedArtikel.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Farben", "Groessen", "Art", "Ab", "Preis", "WZ", "P_mng", "ME", "VP_Mng"
+            }
+        ));
+        jTableSelectedArtikel.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                jTableSelectedArtikelKeyPressed(evt);
+            }
+        });
+        jScrollPane6.setViewportView(jTableSelectedArtikel);
+
+        jButtonClearSelected.setText("Clear");
+        jButtonClearSelected.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonClearSelectedActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -460,20 +591,44 @@ public class MainWindow extends javax.swing.JFrame {
                 .addGap(342, 342, 342))
             .addGroup(layout.createSequentialGroup()
                 .addGap(42, 42, 42)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel14)
+                            .addComponent(jLabel16)
+                            .addComponent(jLabel17)
+                            .addComponent(jLabel18)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(10, 10, 10)
+                                .addComponent(jLabel13)))
+                        .addGap(36, 36, 36)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jTextPrise, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jTextGroessen, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jTextFarben, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jTextArtNummer, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(51, 51, 51)
+                                .addComponent(jLabel15)
+                                .addGap(18, 18, 18)
+                                .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 364, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel6)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel5)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel7)
+                            .addComponent(jLabel8)
+                            .addComponent(jLabel9))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel6)
-                                    .addComponent(jLabel4)
-                                    .addComponent(jLabel5)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jLabel7)
-                                    .addComponent(jLabel8)
-                                    .addComponent(jLabel9))
-                                .addGap(46, 46, 46)
+                                .addGap(51, 51, 51)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                                     .addComponent(textOrt, javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(textPLZ, javax.swing.GroupLayout.Alignment.LEADING)
@@ -482,34 +637,31 @@ public class MainWindow extends javax.swing.JFrame {
                                     .addComponent(textName2, javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(textName1, javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(textAdresse, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(textLand, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(textLand, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(33, 33, 33)
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 521, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(91, 91, 91)
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 612, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(364, 364, 364)
-                                .addComponent(jLabel12))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jTextArtNummer, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(101, 101, 101)
-                                .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 364, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 530, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(385, 385, 385)
-                        .addComponent(jLabel10))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(379, 379, 379)
-                        .addComponent(jButton1)))
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 471, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(32, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jButtonClearSelected)
+                        .addGap(207, 207, 207))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 326, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButtonAddSelection)
+                                .addGap(18, 18, 18)
+                                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(19, 19, 19)
+                                .addComponent(jButton1)))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -548,28 +700,55 @@ public class MainWindow extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel8)
                             .addComponent(textOrt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel9)
                             .addComponent(textLand, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel12)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel10)
-                .addGap(3, 3, 3)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextArtNummer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addGap(34, 34, 34)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextArtBech, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel15))
+                        .addGap(7, 7, 7)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(179, 179, 179))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextArtNummer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel13))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel14)
+                            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(28, 28, 28)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextFarben, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel16))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextGroessen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel17))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jTextPrise, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel18))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(85, 85, 85)
+                                .addComponent(jButtonAddSelection))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(35, 35, 35)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                .addComponent(jButtonClearSelected)
+                .addGap(68, 68, 68)
                 .addComponent(jButton1)
-                .addGap(309, 309, 309))
+                .addGap(974, 974, 974))
         );
 
         pack();
@@ -598,7 +777,7 @@ public class MainWindow extends javax.swing.JFrame {
 //            JOptionPane.showMessageDialog(null, e);
 //        }
         try {
-           
+
             getTemplate("template.docx");
             MainDocumentPart documentPart = template.getMainDocumentPart();
             HashMap<String, String> mappings = new HashMap<>();
@@ -610,8 +789,8 @@ public class MainWindow extends javax.swing.JFrame {
             mappings.put("artnum", artNum);
             mappings.put("bezeichung", artBeschreibung);
             mappings.put("farben", artFarben);
-            mappings.put("gros", artGroessen);
 
+            // mappings.put("gros", artGroessen);
             VariablePrepare.prepare(template);
             documentPart.variableReplace(mappings);
         } catch (JAXBException | Docx4JException ex) {
@@ -621,6 +800,32 @@ public class MainWindow extends javax.swing.JFrame {
         }
         //replacePlaceholder(template, "OK", "geehrter");
         template.getMainDocumentPart().addStyledParagraphOfText("Nummerierung1", eintritt + "+++" + artBeschreibung + "+++" + artFarben + "+++" + artGroessen);
+        List<HashMap<String, String>> rows = new ArrayList<>();
+        int row = jTableSelectedArtikel.getRowCount();
+        for (int j = 0; j < row; j++) {
+             HashMap<String, String> repl2 = new HashMap<>();
+               
+            repl2.put("SJ_FAR", jTableSelectedArtikel.getValueAt(j, 0).toString());
+            repl2.put("SJ_GR", jTableSelectedArtikel.getValueAt(j, 1).toString());
+            repl2.put("SJ_AR", jTableSelectedArtikel.getValueAt(j, 2).toString());
+            repl2.put("SJ_AB", jTableSelectedArtikel.getValueAt(j, 3).toString());
+            repl2.put("SJ_PR", jTableSelectedArtikel.getValueAt(j, 4).toString().replace(".", ",").substring(0, jTableSelectedArtikel.getValueAt(j, 4).toString().length()-4));
+            repl2.put("SJ_WZ", jTableSelectedArtikel.getValueAt(j, 5).toString());
+            repl2.put("SJ_PM", jTableSelectedArtikel.getValueAt(j, 6).toString().substring(0, jTableSelectedArtikel.getValueAt(j, 6).toString().length()-7));
+            repl2.put("SJ_ME", jTableSelectedArtikel.getValueAt(j, 7).toString());
+            repl2.put("SJ_VP", jTableSelectedArtikel.getValueAt(j, 8).toString());
+            rows.add(repl2);
+            
+        }
+
+        try {
+            replaceTable(new String[]{"SJ_FAR", "SJ_GR", "SJ_AR", "SJ_AB", "SJ_PR", "SJ_WZ", "SJ_PM", "SJ_ME", "SJ_VP"}, rows, template);
+        } catch (Docx4JException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (JAXBException ex) {
+            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         try {
             writeDocxToStream(template, "First.docx");
             JOptionPane.showMessageDialog(null, "Successeful created");
@@ -746,6 +951,9 @@ public class MainWindow extends javax.swing.JFrame {
         //artBeschreibung = jTableArtikel.getValueAt(jTableArtikel.getSelectedRow(), 1).toString();
         artBeschreibung = artikel.getText();
         jTextArtNummer.setText(artNum);
+        jTextAreaArtText.setText(artikel.getText());
+        jTextFarben.setText(artikel.getFarben());
+        jTextGroessen.setText(artikel.getGroessen());
         List<Combination> combinations = null;
         try {
             combinations = dao.getListCombProc(textAdresse.getText(), artNum);
@@ -778,10 +986,54 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void jTableCombinaisonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTableCombinaisonMouseClicked
         // TODO add your handling code here:
+        selection = jTableCombinaison.getSelectedRows();
+        System.out.println(selection);
         artFarben = artikel.getFarben();
         artGroessen = artikel.getGroessen();
         preis = jTableCombinaison.getValueAt(jTableCombinaison.getSelectedRow(), 4).toString();
     }//GEN-LAST:event_jTableCombinaisonMouseClicked
+
+    private void jTextFarbenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFarbenActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextFarbenActionPerformed
+
+    private void jButtonAddSelectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddSelectionActionPerformed
+        // TODO add your handling code here:
+        selection = jTableCombinaison.getSelectedRows();
+        Object row[];
+        row = new Object[9];
+        for (int i = 0; i < selection.length; i++) {
+            row[0] = tableModelCombinaison.getValueAt(selection[i], 0);
+            row[1] = tableModelCombinaison.getValueAt(selection[i], 1);
+            row[2] = tableModelCombinaison.getValueAt(selection[i], 2);
+            row[3] = tableModelCombinaison.getValueAt(selection[i], 3);
+            row[4] = tableModelCombinaison.getValueAt(selection[i], 4);
+            row[5] = tableModelCombinaison.getValueAt(selection[i], 5);
+            row[6] = tableModelCombinaison.getValueAt(selection[i], 6);
+            row[7] = tableModelCombinaison.getValueAt(selection[i], 7);
+            row[8] = tableModelCombinaison.getValueAt(selection[i], 8);
+            tableModelSelected.addRow(row);
+
+        }
+    }//GEN-LAST:event_jButtonAddSelectionActionPerformed
+
+    private void jButtonClearSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearSelectedActionPerformed
+        // TODO add your handling code here:
+        tableModelSelected.setRowCount(0);
+    }//GEN-LAST:event_jButtonClearSelectedActionPerformed
+
+    private void jTextArtBechActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextArtBechActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextArtBechActionPerformed
+
+    private void jTableSelectedArtikelKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTableSelectedArtikelKeyPressed
+        // TODO add your handling code here:
+
+        if (evt.getKeyCode() == KeyEvent.VK_DELETE) {
+            tableModelSelected.removeRow(jTableSelectedArtikel.getSelectedRow());
+
+        }
+    }//GEN-LAST:event_jTableSelectedArtikelKeyPressed
 
     /**
      * @param args the command line arguments
@@ -828,10 +1080,16 @@ public class MainWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea jAreaEintritt;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButtonAddSelection;
+    private javax.swing.JButton jButtonClearSelected;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -843,12 +1101,19 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JTable jTableArtikel;
     private javax.swing.JTable jTableCombinaison;
     private javax.swing.JTable jTableKundenl;
+    private javax.swing.JTable jTableSelectedArtikel;
+    private javax.swing.JTextArea jTextAreaArtText;
     private javax.swing.JTextField jTextArtBech;
     private javax.swing.JTextField jTextArtNummer;
+    private javax.swing.JTextField jTextFarben;
+    private javax.swing.JTextField jTextGroessen;
+    private javax.swing.JTextField jTextPrise;
     private javax.swing.JTextField textAdresse;
     private javax.swing.JTextField textAdresse6;
     private javax.swing.JTextField textLand;

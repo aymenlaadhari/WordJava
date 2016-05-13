@@ -10,24 +10,23 @@ import com.dastex.javaword.dao.DocDaoInterface;
 import com.dastex.javaword.dao.model.Artikel;
 import com.dastex.javaword.dao.model.Combination;
 import com.dastex.javaword.dao.model.Kunden;
-import java.awt.HeadlessException;
+
+
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.RowFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import javax.xml.bind.JAXBElement;
@@ -81,6 +80,14 @@ public class MainWindow extends javax.swing.JFrame {
         tableModelArtikel = (DefaultTableModel) jTableArtikel.getModel();
         tableModelCombinaison = (DefaultTableModel) jTableCombinaison.getModel();
         tableModelSelected = (DefaultTableModel) jTableSelectedArtikel.getModel();
+        DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
+        rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
+        jTableCombinaison.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+        jTableCombinaison.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
+        jTableCombinaison.getColumnModel().getColumn(8).setCellRenderer(rightRenderer);
+        jTableSelectedArtikel.getColumnModel().getColumn(4).setCellRenderer(rightRenderer);
+        jTableSelectedArtikel.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
+        jTableSelectedArtikel.getColumnModel().getColumn(8).setCellRenderer(rightRenderer);
         tableModel.setRowCount(0);
         tableModelArtikel.setRowCount(0);
         tableModelCombinaison.setRowCount(0);
@@ -236,7 +243,6 @@ public class MainWindow extends javax.swing.JFrame {
         rowDataCombinaison[4] = combination.getPreis();
         rowDataCombinaison[5] = combination.getWz();
         rowDataCombinaison[6] = combination.getPmng();
-
         rowDataCombinaison[7] = combination.getMe();
         rowDataCombinaison[8] = combination.getVpMng();
 
@@ -759,7 +765,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         // TODO add your handling code here:
         eintritt = jAreaEintritt.getText();
-        String neString = preis.replace(".", ",");
+        
 //        try {
 //            try (FileOutputStream fileOutputStream = new FileOutputStream("First.docx")) {
 //
@@ -789,8 +795,7 @@ public class MainWindow extends javax.swing.JFrame {
             mappings.put("artnum", artNum);
             mappings.put("bezeichung", artBeschreibung);
             mappings.put("farben", artFarben);
-
-            // mappings.put("gros", artGroessen);
+            mappings.put("gros", artGroessen);
             VariablePrepare.prepare(template);
             documentPart.variableReplace(mappings);
         } catch (JAXBException | Docx4JException ex) {
@@ -809,9 +814,9 @@ public class MainWindow extends javax.swing.JFrame {
             repl2.put("SJ_GR", jTableSelectedArtikel.getValueAt(j, 1).toString());
             repl2.put("SJ_AR", jTableSelectedArtikel.getValueAt(j, 2).toString());
             repl2.put("SJ_AB", jTableSelectedArtikel.getValueAt(j, 3).toString());
-            repl2.put("SJ_PR", jTableSelectedArtikel.getValueAt(j, 4).toString().replace(".", ",").substring(0, jTableSelectedArtikel.getValueAt(j, 4).toString().length()-4));
+            repl2.put("SJ_PR", jTableSelectedArtikel.getValueAt(j, 4).toString());
             repl2.put("SJ_WZ", jTableSelectedArtikel.getValueAt(j, 5).toString());
-            repl2.put("SJ_PM", jTableSelectedArtikel.getValueAt(j, 6).toString().substring(0, jTableSelectedArtikel.getValueAt(j, 6).toString().length()-7));
+            repl2.put("SJ_PM", jTableSelectedArtikel.getValueAt(j, 6).toString());
             repl2.put("SJ_ME", jTableSelectedArtikel.getValueAt(j, 7).toString());
             repl2.put("SJ_VP", jTableSelectedArtikel.getValueAt(j, 8).toString());
             rows.add(repl2);
@@ -820,9 +825,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         try {
             replaceTable(new String[]{"SJ_FAR", "SJ_GR", "SJ_AR", "SJ_AB", "SJ_PR", "SJ_WZ", "SJ_PM", "SJ_ME", "SJ_VP"}, rows, template);
-        } catch (Docx4JException ex) {
-            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (JAXBException ex) {
+        } catch (Docx4JException | JAXBException ex) {
             Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
 

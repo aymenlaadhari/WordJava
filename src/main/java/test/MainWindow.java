@@ -5,16 +5,15 @@
  */
 package test;
 
-import java.awt.Cursor;
+import com.sun.javafx.css.Combinator;
 import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -47,8 +46,10 @@ import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
 import org.docx4j.wml.ContentAccessor;
 import org.docx4j.wml.ObjectFactory;
 import org.docx4j.wml.Tbl;
+import org.docx4j.wml.TblPr;
 import org.docx4j.wml.TblWidth;
 import org.docx4j.wml.Tc;
+import org.docx4j.wml.TcPr;
 import org.docx4j.wml.Text;
 import org.docx4j.wml.Tr;
 
@@ -73,8 +74,9 @@ public class MainWindow extends javax.swing.JFrame  {
     DocDao dao;
     Artikel artikel;
     int[] selection, selectedArtikel;
-    static ObjectFactory factory = new ObjectFactory();
+    ObjectFactory factory = new ObjectFactory();
     private Angebot angebot;
+    private int position = 1;
 
     /**
      * Creates new form MainWindow
@@ -123,8 +125,8 @@ public class MainWindow extends javax.swing.JFrame  {
          */
         @Override
         public Void doInBackground() throws Docx4JException, FileNotFoundException, IOException, Exception {
-            eintritt = jAreaEintritt.getText();
-            createSecondTable();
+            eintritt = jAreaEintritt.getText();  
+           createTable();        
             return null;
         }
 
@@ -154,30 +156,7 @@ public class MainWindow extends javax.swing.JFrame  {
         }
     }
 
-    private void createSecondTable() throws Docx4JException, FileNotFoundException, Exception {
-         getTemplate("template.docx");
-         createFirstTable();
-                MainDocumentPart documentPart = template.getMainDocumentPart();
-                HashMap<String, String> mappings = new HashMap<>();
-                mappings.put("name", textName1.getText().replaceAll("&([^;]+(?!(?:\\w|;)))", "&amp;$1"));
-                mappings.put("strasse", textStrasse.getText().replaceAll("&([^;]+(?!(?:\\w|;)))", "&amp;$1"));
-                mappings.put("plz", textPLZ.getText());
-                mappings.put("ort", textOrt.getText());
-                mappings.put("eintritt", eintritt);
-                mappings.put("artnum", artNum);
-                mappings.put("bezeichung", artBeschreibung);
-                mappings.put("farben", artFarben);
-                mappings.put("gros", artGroessen);
-                VariablePrepare.prepare(template);
-                documentPart.variableReplace(mappings);
-
-        }
-        
-        
-        
-
     
-
 
     private WordprocessingMLPackage getTemplate(String name) throws Docx4JException, FileNotFoundException, org.docx4j.openpackaging.exceptions.Docx4JException {
         template = WordprocessingMLPackage.load(new FileInputStream(new File(name)));
@@ -201,159 +180,211 @@ public class MainWindow extends javax.swing.JFrame  {
         }
         return result;
     }
+    // Create the nested Table
+    
+      private void createInnerTable() throws FileNotFoundException, Exception {
+        // get the first Table
+//        List<Object> tables = getAllElementFromObject(template.getMainDocumentPart(), Tbl.class);
+//        Tbl firstTable = (Tbl) tables.get(0);
+//        List<Object> rows = getAllElementFromObject(firstTable, Tr.class);
+//        Tr templateRowTable = (Tr) rows.get(1);
+//        List<Object> tablesInside = getAllElementFromObject(templateRowTable, Tbl.class);
+//        Tbl tempTable = (Tbl) tablesInside.get(0);
+        selectedArtikels.stream().forEach((selectArtikel) -> {
+            Tbl tblCredProg = factory.createTbl();
+            TblPr tblPr = new TblPr();
+            tblCredProg.setTblPr(tblPr);
+            TblWidth width = new TblWidth();
+            width.setType("auto");
+            width.setW(new BigInteger("0"));
+            tblPr.setTblW(width);
 
-    private static void addRowToTable(Tbl reviewtable, Tr templateRow, HashMap<String, String> replacements) {
+//            Tr trPosition = factory.createTr();
+//            try {
+//                addTc(trPosition, "Position : " + position, "Position");
+//            } catch (JAXBException ex) {
+//                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+            
+//            Tr trParagraph = factory.createTr();
+//            try {
+//                addTc(trParagraph, "Artikel-Nr.: " + selectArtikel.getNr() + "/n" + selectArtikel.getText() + "Verfügbare Farben : " + selectArtikel.getFarben() + "/n Verfügbare Größen: " + selectArtikel.getGroessen(), "Beschreibung");
+//            } catch (JAXBException ex) {
+//                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+
+            Tr trHeader = factory.createTr();
+            try {
+                addTc(trHeader, "Farben", "Header");
+                addTc(trHeader, "Groessen", "Header");
+                addTc(trHeader, "Art", "Header");
+                addTc(trHeader, "Ab", "Header");
+                addTc(trHeader, "Preis", "Header");
+                addTc(trHeader, "WZ", "Header");
+                addTc(trHeader, "Pmng", "Header");
+                addTc(trHeader, "Me", "Header");
+                addTc(trHeader, "VpMng", "Header");
+            } catch (JAXBException ex) {
+                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+               
+//            tblCredProg.getEGContentRowContent().add(trPosition);
+//            tblCredProg.getEGContentRowContent().add(trParagraph);
+            tblCredProg.getEGContentRowContent().add(trHeader);
+
+            System.out.println("-----------------Data from list artikels--------------------------" + selectArtikel.getNr());
+            List<HashMap<String, String>> rowsInTableArtPrise = new ArrayList<>();
+            selectArtikel.getCombinations().stream().forEach((cnsmr) -> {
+                Tr tr = factory.createTr();
+                try {
+                    addTc(tr, cnsmr.getFarben(),"Data");
+                    addTc(tr, cnsmr.getGroessen(),"Data");
+                addTc(tr, cnsmr.getArt(),"Data");
+                addTc(tr, cnsmr.getAb(),"Data");
+                addTc(tr, cnsmr.getPreis(),"Data");
+                addTc(tr, cnsmr.getWz(),"Data");
+                addTc(tr, cnsmr.getPmng(),"Data");
+                addTc(tr, cnsmr.getMe(),"Data");
+                addTc(tr, cnsmr.getVpMng(),"Data");
+                } catch (JAXBException ex) {
+                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+
+                tblCredProg.getEGContentRowContent().add(tr);
+                HashMap<String, String> repl2 = new HashMap<>();
+                repl2.put("SJ_FAR", cnsmr.getFarben());
+                repl2.put("SJ_GR", cnsmr.getGroessen());
+                repl2.put("SJ_AR", cnsmr.getArt());
+                repl2.put("SJ_AB", cnsmr.getAb());
+                repl2.put("SJ_PR", cnsmr.getPreis());
+                repl2.put("SJ_WZ", cnsmr.getWz());
+                repl2.put("SJ_PM", cnsmr.getPmng());
+                repl2.put("SJ_ME", cnsmr.getMe());
+                repl2.put("SJ_VP", cnsmr.getVpMng());
+                rowsInTableArtPrise.add(repl2);
+                System.out.println("output from the hashmap : " + repl2.get("SJ_PR"));
+
+            });
+//            try {
+//                replaceInnerTable(rowsInTableArtPrise, tempTable);
+//            } catch (Docx4JException ex) {
+//                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+//            } catch (JAXBException ex) {
+//                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//               addRowToTableFirst(firstTable, templateRowTable);
+//               firstTable.getContent().remove(templateRowTable);
+            template.getMainDocumentPart().addStyledParagraphOfText("Strong", "Position: " +position);
+            template.getMainDocumentPart().addStyledParagraphOfText("Strong", "Artikel-Nr.: " + selectArtikel.getNr() + "/n" + selectArtikel.getText() + "Verfügbare Farben : " + selectArtikel.getFarben() + "/n Verfügbare Größen: " + selectArtikel.getGroessen());
+            template.getMainDocumentPart().addObject(tblCredProg);
+            position = position + 1;
+
+        });
+
+    }
+       private  void replaceInnerTable(List<HashMap<String, String>> textToAdd,
+            Tbl tempTable) throws Docx4JException, JAXBException
+    {
+        
+        List<Object> rows = getAllElementFromObject(tempTable, Tr.class);      
+           // first row is header, second row is content
+     
+            // this is our template row
+     
+                // 2 and 3 are done in this method
+            Tr templateRow = (Tr) rows.get(1);
+            for (HashMap<String, String> replacements : textToAdd) {
+                // 2 and 3 are done in this method             
+                addRowToTable(tempTable, templateRow, replacements);
+            }
+            // 4. remove the template row
+            //tempTable.getContent().remove(templateRow); 
+          
+    }
+       
+         private static void addRowToTable(Tbl reviewtable, Tr templateRow, HashMap<String, String> replacements) {
         Tr workingRow = (Tr) XmlUtils.deepCopy(templateRow);
         List textElements = getAllElementFromObject(workingRow, Text.class);
+        
         for (Object object : textElements) {
             Text text = (Text) object;
             String replacementValue = (String) replacements.get(text.getValue());
+            System.out.println("----Data from template row-----"+replacementValue);
             if (replacementValue != null) {
                 text.setValue(replacementValue);
             }
         }
-
-        reviewtable.getContent().add(workingRow);
+        reviewtable.getContent().add(workingRow);        
     }
-
-    private void replaceTable(String[] placeholders, List<HashMap<String, String>> textToAdd,
-            WordprocessingMLPackage template) throws Docx4JException, JAXBException {
-        List<Object> tables = getAllElementFromObject(template.getMainDocumentPart(), Tbl.class);
-
-        // 1. find the table
-        Tbl tempTable = getTemplateTable(tables, placeholders[0]);
-        List<Object> rows = getAllElementFromObject(tempTable, Tr.class);
-
-        // first row is header, second row is content
-        if (rows.size() == 2) {
-            // this is our template row
-            Tr templateRow = (Tr) rows.get(1);
-
-            for (HashMap<String, String> replacements : textToAdd) {
-                // 2 and 3 are done in this method
-                addRowToTable(tempTable, templateRow, replacements);
-            }
-
-            // 4. remove the template row
-            tempTable.getContent().remove(templateRow);
-        }
-    }
-
-    private Tbl getTemplateTable(List<Object> tables, String templateKey) throws Docx4JException, JAXBException {
-        for (Object tbl : tables) {
-            List<?> textElements = getAllElementFromObject(tbl, Text.class);
-            for (Object text : textElements) {
-                Text textElement = (Text) text;
-                if (textElement.getValue() != null && textElement.getValue().equals(templateKey)) {
-                    return (Tbl) tbl;
-                }
-            }
-        }
-        return null;
-    }
-
-    private void writeDocxToStream(WordprocessingMLPackage template, String target) throws IOException, Docx4JException {
-        File f = new File(target);
-        template.save(f);
-    }
-
-    
-    
-    
-    
-    // new
-    
-       private  void createFirstTable() throws FileNotFoundException, Exception {
-        // get the first Table
-        List<Object> tables = getAllElementFromObject(template.getMainDocumentPart(), Tbl.class);
-        Tbl firstTable = (Tbl) tables.get(0);
-        List<Object> rows = getAllElementFromObject(firstTable, Tr.class);
-        Tr templateRow = (Tr) rows.get(1);
-        List<HashMap<String, String>> rowsInTableArtPrise = new ArrayList<>();
-         int row = jTableSelectedPrises.getRowCount();
-            for (int j = 0; j < row; j++) {
-                HashMap<String, String> repl2 = new HashMap<>();
-                repl2.put("SJ_FAR", jTableSelectedPrises.getValueAt(j, 0).toString());
-                repl2.put("SJ_GR", jTableSelectedPrises.getValueAt(j, 1).toString());
-                repl2.put("SJ_AR", jTableSelectedPrises.getValueAt(j, 2).toString());
-                repl2.put("SJ_AB", jTableSelectedPrises.getValueAt(j, 3).toString());
-                repl2.put("SJ_PR", jTableSelectedPrises.getValueAt(j, 4).toString());
-                repl2.put("SJ_WZ", jTableSelectedPrises.getValueAt(j, 5).toString());
-                repl2.put("SJ_PM", jTableSelectedPrises.getValueAt(j, 6).toString());
-                repl2.put("SJ_ME", jTableSelectedPrises.getValueAt(j, 7).toString());
-                repl2.put("SJ_VP", jTableSelectedPrises.getValueAt(j, 8).toString());
-                rowsInTableArtPrise.add(repl2);
-            }
-      int atrikelsInAngebot = jTableSelectedArtikels.getRowCount();
-        for (int i = 0; i < 6; i++) {
-            replaceSecondTable(rowsInTableArtPrise, templateRow,i);
-            addRowToTableFirst(firstTable, templateRow);
-             
-        }
-
-        firstTable.getContent().remove(templateRow);
-    }
-     
-      private  void replaceSecondTable(List<HashMap<String, String>> textToAdd,
-            Tr template, int i) throws Docx4JException, JAXBException
-    {
-          List<Object> tables = getAllElementFromObject(template, Tbl.class);
-
-        // 1. find the table
-        Tbl tempTable = (Tbl) tables.get(0);
-
-        List<Object> rows = getAllElementFromObject(tempTable, Tr.class);
-
-        // first row is header, second row is content
-        if (rows.size() == 3) {
-            // this is our template row
-     
-                // 2 and 3 are done in this method
-            
-           
-            Tr templateRow = (Tr) rows.get(2);
-            for (HashMap<String, String> replacements : textToAdd) {
-                // 2 and 3 are done in this method
-                addRowToTable(tempTable, templateRow, replacements);
-            }
-
-            // 4. remove the template row
-            tempTable.getContent().remove(templateRow);
-        }
-    }
-      
        private  void addRowToTableFirst(Tbl reviewtable, Tr templateRow) {
         Tr workingRow = (Tr) XmlUtils.deepCopy(templateRow);
         reviewtable.getContent().add(workingRow);
+           }      
+       private void createTable() throws Docx4JException, FileNotFoundException, Exception {
+         getTemplate("template.docx");
+         createInnerTable();
+                MainDocumentPart documentPart = template.getMainDocumentPart();
+                HashMap<String, String> mappings = new HashMap<>();
+                mappings.put("name", textName1.getText().replaceAll("&([^;]+(?!(?:\\w|;)))", "&amp;$1"));
+                mappings.put("strasse", textStrasse.getText().replaceAll("&([^;]+(?!(?:\\w|;)))", "&amp;$1"));
+                mappings.put("plz", textPLZ.getText());
+                mappings.put("ort", textOrt.getText());
+                mappings.put("eintritt", eintritt);
+                mappings.put("ref", "101215");
+                mappings.put("msg", "heute");
+                mappings.put("phn", "55258169");
+                mappings.put("email", "aymenlaadhari@gmail.com");
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                Date date = new Date();
+                mappings.put("date", dateFormat.format(date));
+//                mappings.put("artnum", artNum);
+//                mappings.put("bezeichung", artBeschreibung);
+//                mappings.put("farben", artFarben);
+//                mappings.put("gros", artGroessen);
+                VariablePrepare.prepare(template);
+                documentPart.variableReplace(mappings);
+        }    
+       private void writeDocxToStream(WordprocessingMLPackage template, String target) throws IOException, Docx4JException {
+        File f = new File(target);
+        template.save(f);
     }
-    
-    
+       
+       private void addTc(Tr tr, String text, String origin) throws JAXBException {
+        Tc tc = factory.createTc();
+        TcPr tcPr = new TcPr();
+        TblWidth width = new TblWidth();
+        width.setType("dxa");
+        width.setW(new BigInteger("3192"));
+        tcPr.setTcW(width);
+        tc.setTcPr(tcPr);
+           switch (origin) {
+               case "Header":
+                   String str = "<w:p xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" ><w:r><w:rPr><w:b /></w:rPr><w:t>" + text + "</w:t></w:r></w:p>";
+                   tc.getEGBlockLevelElts().add(XmlUtils.unmarshalString(str));
+                   break;
+//               case "Beschreibung":
+//                   tc.getEGBlockLevelElts().add(template.getMainDocumentPart().addStyledParagraphOfText("Strong", text));
+//                   break;
+//               case "Position":
+//                   String strPosition = "<w:p xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" ><w:r><w:rPr><w:b /></w:rPr><w:t>" + text + "</w:t></w:r></w:p>";
+//                   tc.getEGBlockLevelElts().add(XmlUtils.unmarshalString(strPosition));
+               
+               case "Data":
+                   tc.getEGBlockLevelElts().add(template.getMainDocumentPart().createStyledParagraphOfText("Strong", text));
+                   default:
+                     tc.getEGBlockLevelElts().add(template.getMainDocumentPart().createStyledParagraphOfText("Strong", text));  
+           }
+
+        tr.getEGContentCellContent().add(tc);
+    }
        
        
-    private void createListArtikelsAngebot()
-    {
-          
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+       
+       /*
+       Jform Data itiniatisation
+       */
     private void populateListKunden() {
 
         kundens.stream().forEach((listKunden) -> {
@@ -373,9 +404,6 @@ public class MainWindow extends javax.swing.JFrame  {
         rowData[5] = kunden.getLand();
     }
 
-    
-    
-    
     private void populateListArtikel() {
         artikels.stream().forEach((artikel) -> {
             populateJtableArtikel(artikel);
@@ -485,6 +513,7 @@ public class MainWindow extends javax.swing.JFrame  {
         jScrollPane7 = new javax.swing.JScrollPane();
         jTableSelectedArtikels = new javax.swing.JTable();
         jButtonAddtoAngebot = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
         textAdresse6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -785,6 +814,13 @@ public class MainWindow extends javax.swing.JFrame  {
             }
         });
 
+        jButton2.setText("Clear");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -875,8 +911,13 @@ public class MainWindow extends javax.swing.JFrame  {
                         .addGap(346, 346, 346)
                         .addComponent(jLabel11))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(21, 21, 21)
-                        .addComponent(jButtonAddtoAngebot)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(21, 21, 21)
+                                .addComponent(jButtonAddtoAngebot))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(33, 33, 33)
+                                .addComponent(jButton2)))
                         .addGap(28, 28, 28)
                         .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 719, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -985,7 +1026,9 @@ public class MainWindow extends javax.swing.JFrame  {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButtonAddtoAngebot)
-                        .addGap(177, 177, 177))))
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton2)
+                        .addGap(136, 136, 136))))
         );
 
         pack();
@@ -995,7 +1038,6 @@ public class MainWindow extends javax.swing.JFrame  {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
         // TODO add your handling code here:
-      
        task = new Task();
            task.execute();
 
@@ -1212,15 +1254,57 @@ public class MainWindow extends javax.swing.JFrame  {
 
     private void jButtonAddtoAngebotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAddtoAngebotActionPerformed
         // TODO add your handling code here:
+       List<Prises> priseses = new ArrayList<>();
         Artikel artikelAngebot = new Artikel();
           artikelAngebot.setNr(artNum);
           artikelAngebot.setBezeichnung(artikel.getBezeichnung());
-          artikelAngebot.setCombinations(combinations);
+        for (int i = 0; i < jTableSelectedPrises.getRowCount(); i++) {
+            Prises p = new Prises();
+            if (jCheckFarben.isSelected()) {
+             p.setFarben(tableModelSelectedPrises.getValueAt(i, 0).toString());
+            } 
+
+            if (jCheckGroessen.isSelected()) {
+                p.setGroessen(tableModelSelectedPrises.getValueAt(i, 1).toString());
+
+            }
+
+            p.setArt(tableModelSelectedPrises.getValueAt(i, 2).toString());
+            if (tableModelSelectedPrises.getValueAt(i, 3) != null) {
+                p.setAb(tableModelSelectedPrises.getValueAt(i, 3).toString());
+            }
+            
+            if(tableModelSelectedPrises.getValueAt(i, 4).toString() !=null)
+            {
+              p.setPreis(tableModelSelectedPrises.getValueAt(i, 4).toString());  
+            }
+            
+            p.setWz(tableModelSelectedPrises.getValueAt(i, 5).toString());
+            p.setPmng(tableModelSelectedPrises.getValueAt(i, 6).toString());
+            p.setMe(tableModelSelectedPrises.getValueAt(i, 7).toString());
+            p.setVpMng(tableModelSelectedPrises.getValueAt(i, 8).toString());
+            priseses.add(p);
+
+        }
+          artikelAngebot.setCombinations(priseses);
+          artikelAngebot.setText(artBeschreibung);
           selectedArtikels.add(artikelAngebot);
              rowArtAngebot[0] = artikelAngebot.getNr();
              rowArtAngebot[1] = artikelAngebot.getBezeichnung();
             tableModelSelectedArtikel.addRow(rowArtAngebot);
+        for (int i = 0; i < selectedArtikels.size(); i++) {
+            for (int j = 0; j < selectedArtikels.get(i).getCombinations().size(); j++) {
+                System.out.println(selectedArtikels.get(i).getCombinations().get(j).getPreis());
+            }
+            
+        }
     }//GEN-LAST:event_jButtonAddtoAngebotActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        tableModelSelectedArtikel.setRowCount(0);
+        selectedArtikels.clear();
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1270,6 +1354,7 @@ public class MainWindow extends javax.swing.JFrame  {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea jAreaEintritt;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButtonAddSelection;
     private javax.swing.JButton jButtonAddtoAngebot;
     private javax.swing.JButton jButtonClearSelected;
